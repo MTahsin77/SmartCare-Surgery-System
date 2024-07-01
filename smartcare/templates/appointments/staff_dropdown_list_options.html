@@ -1,0 +1,4 @@
+<option value="">---------</option>
+{% for staff_member in staff %}
+<option value="{{ staff_member.pk }}">{{ staff_member.get_full_name }}</option>
+{% endfor %}

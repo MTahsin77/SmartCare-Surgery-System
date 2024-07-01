@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Issue Prescription for Appointment on {{ appointment.date }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Issue Prescription</button>
+</form>
+{% endblock %}

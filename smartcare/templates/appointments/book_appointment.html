@@ -1,18 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <h2>Book Appointment</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Book Appointment</button>
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<h2>Book an Appointment</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Book Appointment</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $("#id_doctor_or_nurse").change(function () {
+        var doctorOrNurse = $(this).val();
+        var url = "{% url 'ajax_load_staff' %}";
+        $.ajax({
+            url: url,
+            data: {
+                'doctor_or_nurse': doctorOrNurse
+            },
+            success: function (data) {
+                $("#id_staff").html(data);
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -10,14 +10,20 @@ class User(AbstractUser):
     )
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='patient')
 
-    def __str__(self):
-        return self.username
+    def is_patient(self):
+        return self.user_type == 'patient'
+
+    def is_doctor(self):
+        return self.user_type == 'doctor'
+
+    def is_nurse(self):
+        return self.user_type == 'nurse'
+
+    def is_admin(self):
+        return self.user_type == 'admin'
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
-    email = models.EmailField()
     address = models.CharField(max_length=255, blank=True)
 
     def __str__(self):

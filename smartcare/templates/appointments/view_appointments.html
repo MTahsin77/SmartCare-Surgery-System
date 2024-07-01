@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Your Appointments</h2>
+{% if appointments %}
+    <ul>
+    {% for appointment in appointments %}
+        <li>{{ appointment.date }} at {{ appointment.time }} - Reason: {{ appointment.reason }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No appointments scheduled.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Admin Dashboard, {{ user.username }}</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="{% url 'manage_users' %}">Manage Users</a></li>
+            <li><a href="{% url 'manage_appointments' %}">Manage Appointments</a></li>
+            <li><a href="{% url 'approve_doctors' %}">Approve Doctors</a></li>
+            <li><a href="{% url 'profile' %}">Profile</a></li>
+            <li><a href="{% url 'user_logout' %}">Logout</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section>
+            <h2>Admin Actions</h2>
+            <p>Select an action from the menu to manage the system.</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 SmartCare Surgery System</p>
+    </footer>
+</body>
+</html>
