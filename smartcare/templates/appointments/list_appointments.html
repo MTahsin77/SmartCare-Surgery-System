@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Appointments</title>
 </head>
 <body>
-    <h2>Your Appointments</h2>
-    <ul>
+    <h1>Your Appointments</h1>
+    {% if appointments %}
+        <ul>
         {% for appointment in appointments %}
-            <li>{{ appointment.date }} with {{ appointment.doctor_or_nurse }}</li>
+            <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.doctor_or_nurse }} - Reason: {{ appointment.reason }}</li>
         {% endfor %}
-    </ul>
+        </ul>
+    {% else %}
+        <p>You have no appointments scheduled.</p>
+    {% endif %}
 </body>
 </html>

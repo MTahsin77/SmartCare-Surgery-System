@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Prescription Details</h2>
+<p><strong>Medication:</strong> {{ prescription.medication }}</p>
+<p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
+<p><strong>Instructions:</strong> {{ prescription.instructions }}</p>
+<p><strong>Prescribed by:</strong> Dr. {{ prescription.doctor.get_full_name }}</p>
+<p><strong>Date Prescribed:</strong> {{ prescription.date_prescribed|date:"F d, Y" }}</p>
+<p><strong>Repeatable:</strong> {% if prescription.is_repeatable %}Yes{% else %}No{% endif %}</p>
+{% endblock %}

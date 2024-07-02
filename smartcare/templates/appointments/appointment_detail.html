@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Appointment Details</h2>
+<p>Patient: {{ appointment.patient }}</p>
+<p>Doctor: {{ appointment.doctor }}</p>
+<p>Date: {{ appointment.date }}</p>
+<p>Time: {{ appointment.time }}</p>
+<p>Reason: {{ appointment.reason }}</p>
+
+<h3>Prescriptions</h3>
+{% if prescriptions %}
+    <ul>
+    {% for prescription in prescriptions %}
+        <li>{{ prescription.medication }} - {{ prescription.dosage }} - {{ prescription.instructions }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No prescriptions issued yet.</p>
+{% endif %}
+
+{% if user.is_doctor %}
+    <a href="{% url 'issue_prescription' appointment.id %}">Issue New Prescription</a>
+{% endif %}
+{% endblock %}

@@ -1,39 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Dashboard</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Patient Dashboard - SmartCare Surgery</title>
 </head>
 <body>
-    <header>
-        <h1>Welcome to Your Dashboard, {{ user.username }}</h1>
-    </header>
-    <nav>
+    <h1>Welcome, {{ request.user.get_full_name }}</h1>
+    <h2>Your Appointments</h2>
+    {% if appointments %}
         <ul>
-            <li><a href="{% url 'list_appointments' %}">My Appointments</a></li>
-            <li><a href="{% url 'book_appointment' %}">Book Appointment</a></li>
-            <li><a href="{% url 'profile' %}">Profile</a></li>
+        {% for appointment in appointments %}
+            <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.doctor_or_nurse }}</li>
+        {% endfor %}
         </ul>
-    </nav>
-    <main>
-        <section>
-            <h2>Upcoming Appointments</h2>
-            {% if appointments %}
-                <ul>
-                    {% for appointment in appointments %}
-                        <li>{{ appointment.date }} with {{ appointment.doctor.name }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No upcoming appointments.</p>
-            {% endif %}
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2024 SmartCare Surgery System</p>
-    </footer>
+    {% else %}
+        <p>You have no upcoming appointments.</p>
+    {% endif %}
+    <a href="{% url 'view_prescriptions' %}">View My Prescriptions</a>
+    <a href="{% url 'book_appointment' %}">Book New Appointment</a>
+    <a href="{% url 'profile' %}">Edit Profile</a>
+    <a href="{% url 'logout' %}">Logout</a>
 </body>
 </html>

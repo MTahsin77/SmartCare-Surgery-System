@@ -5,6 +5,7 @@ from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm
 from appointments.models import Appointment
 from .forms import AppointmentForm
 from .models import UserProfile
+from .decorators import user_is_patient, user_is_doctor, user_is_nurse, user_is_admin
 
 def register(request):
     if request.method == 'POST':
@@ -16,7 +17,14 @@ def register(request):
             password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=password)
             login(request, user)
-            return redirect('dashboard')
+            if user.is_patient():
+                return redirect('patient_dashboard')
+            elif user.is_doctor():
+                return redirect('doctor_dashboard')
+            elif user.is_nurse():
+                return redirect('nurse_dashboard')
+            else:
+                return redirect('admin_dashboard')
     else:
         form = UserRegistrationForm()
     return render(request, 'authentication/register.html', {'form': form})
@@ -38,6 +46,30 @@ def user_login(request):
     else:
         form = UserLoginForm()
     return render(request, 'authentication/login.html', {'form': form})
+
+@login_required
+@user_is_patient
+def patient_dashboard(request):
+    appointments = Appointment.objects.filter(patient=request.user)
+    return render(request, 'authentication/patient_dashboard.html', {'appointments': appointments})
+
+@login_required
+@user_is_doctor
+def doctor_dashboard(request):
+    appointments = Appointment.objects.filter(doctor=request.user)
+    return render(request, 'authentication/doctor_dashboard.html', {'appointments': appointments})
+
+@login_required
+@user_is_nurse
+def nurse_dashboard(request):
+    appointments = Appointment.objects.filter(nurse=request.user)
+    return render(request, 'authentication/nurse_dashboard.html', {'appointments': appointments})
+
+@login_required
+@user_is_admin
+def admin_dashboard(request):
+    all_appointments = Appointment.objects.all()
+    return render(request, 'authentication/admin_dashboard.html', {'appointments': all_appointments})
 
 @login_required
 def profile(request):
@@ -64,6 +96,8 @@ def book_appointment(request):
             appointment.patient = request.user
             appointment.save()
             return redirect('list_appointments')
+        else:
+            print(f"Form errors: {form.errors}") 
     else:
         form = AppointmentForm()
     return render(request, 'appointments/book_appointment.html', {'form': form})

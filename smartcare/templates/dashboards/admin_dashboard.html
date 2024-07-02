@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +17,7 @@
             <li><a href="{% url 'manage_appointments' %}">Manage Appointments</a></li>
             <li><a href="{% url 'approve_doctors' %}">Approve Doctors</a></li>
             <li><a href="{% url 'profile' %}">Profile</a></li>
-            <li><a href="{% url 'user_logout' %}">Logout</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
     </nav>
     <main>

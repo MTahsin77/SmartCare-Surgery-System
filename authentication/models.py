@@ -22,6 +22,9 @@ class User(AbstractUser):
     def is_admin(self):
         return self.user_type == 'admin'
 
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     address = models.CharField(max_length=255, blank=True)

@@ -26,6 +26,7 @@
                     {% for appointment in appointments %}
                         <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.patient.username }}
                             <a href="{% url 'issue_prescription' appointment.id %}">Issue Prescription</a>
+                            <a href="{% url 'view_prescriptions' %}">View Issued Prescriptions</a>
                         </li>
                     {% endfor %}
                 </ul>
