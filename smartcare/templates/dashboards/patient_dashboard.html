@@ -1,23 +1,48 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Patient Dashboard - SmartCare Surgery</title>
-</head>
-<body>
-    <h1>Welcome, {{ request.user.get_full_name }}</h1>
-    <h2>Your Appointments</h2>
+{% extends 'base.html' %}
+{% block title %}Patient Dashboard{% endblock %}
+{% block content %}
+<h1>Patient Dashboard</h1>
+
+<section>
+    <h2>Your Upcoming Appointments</h2>
     {% if appointments %}
         <ul>
         {% for appointment in appointments %}
-            <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.doctor_or_nurse }}</li>
+            <li>
+                {{ appointment.date|date:"F d, Y" }} at {{ appointment.time|time:"H:i" }} 
+                with {% if appointment.doctor %}Dr. {{ appointment.doctor.get_full_name }}{% else %}Nurse {{ appointment.nurse.get_full_name }}{% endif %}
+            </li>
         {% endfor %}
         </ul>
     {% else %}
         <p>You have no upcoming appointments.</p>
     {% endif %}
-    <a href="{% url 'view_prescriptions' %}">View My Prescriptions</a>
-    <a href="{% url 'book_appointment' %}">Book New Appointment</a>
-    <a href="{% url 'profile' %}">Edit Profile</a>
-    <a href="{% url 'logout' %}">Logout</a>
-</body>
-</html>
+    <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book New Appointment</a>
+</section>
+
+<section>
+    <h2>Your Prescriptions</h2>
+    {% if prescriptions %}
+        <ul>
+        {% for prescription in prescriptions %}
+            <li>{{ prescription.medication }} - {{ prescription.dosage }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no active prescriptions.</p>
+    {% endif %}
+</section>
+
+<section>
+    <h2>Your Invoices</h2>
+    {% if invoices %}
+        <ul>
+        {% for invoice in invoices %}
+            <li>Invoice #{{ invoice.id }} - ${{ invoice.total_amount }} ({{ invoice.get_payment_status_display }})</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no invoices.</p>
+    {% endif %}
+</section>
+{% endblock %}

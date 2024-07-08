@@ -1,26 +1,218 @@
 {% extends 'base.html' %}
+{% block title %}Book Appointment{% endblock %}
 {% block content %}
 <h2>Book an Appointment</h2>
-<form method="post">
+<form method="post" id="appointment-form" class="appointment-form">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Book Appointment</button>
+    <div class="form-group">
+        <label for="id_date">Date:</label>
+        {{ form.date }}
+    </div>
+    <div class="form-group">
+        <label for="id_time">Time:</label>
+        {{ form.time }}
+    </div>
+    <div class="form-group">
+        <label for="id_reason">Reason:</label>
+        {{ form.reason }}
+    </div>
+    <div class="form-group">
+        <label for="id_address">Address:</label>
+        {{ form.address }}
+    </div>
+    <div class="form-group">
+        {{ form.latitude }}
+        {{ form.longitude }}
+    </div>
+    <div class="form-group">
+        <label for="select-type">Select Type:</label>
+        <select id="select-type" class="custom-select">
+            <option value="">Select Doctor or Nurse</option>
+            <option value="doctor">Doctor</option>
+            <option value="nurse">Nurse</option>
+        </select>
+    </div>
+    <div class="form-group" id="doctor-select-group" style="display: none;">
+        <label for="id_doctor">Doctor:</label>
+        <select name="doctor" id="id_doctor" class="custom-select">
+            <option value="">Select Doctor</option>
+        </select>
+    </div>
+    <div class="form-group" id="nurse-select-group" style="display: none;">
+        <label for="id_nurse">Nurse:</label>
+        <select name="nurse" id="id_nurse" class="custom-select">
+            <option value="">Select Nurse</option>
+        </select>
+    </div>
+    <button type="submit" class="btn-primary custom-button">Book Appointment</button>
 </form>
+{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .appointment-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    .appointment-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="date"]:focus,
+    .form-group input[type="time"]:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #4CAF50;
+        outline: none;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+
+    .custom-select {
+        appearance: none;
+        background: url('data:image/svg+xml;utf8,<svg fill="%234CAF50" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
+        background-color: #fff;
+        padding-right: 30px;
+    }
+
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+</style>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script>
-    $("#id_doctor_or_nurse").change(function () {
-        var doctorOrNurse = $(this).val();
-        var url = "{% url 'ajax_load_staff' %}";
-        $.ajax({
-            url: url,
-            data: {
-                'doctor_or_nurse': doctorOrNurse
-            },
-            success: function (data) {
-                $("#id_staff").html(data);
+    $(document).ready(function() {
+        // Initialize the date picker
+        $('#id_date').flatpickr({
+            dateFormat: 'Y-m-d',
+            minDate: 'today'
+        });
+
+        // Initialize the time picker
+        $('#id_time').flatpickr({
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            minuteIncrement: 10
+        });
+
+        function initAutocomplete() {
+            var input = document.getElementById('address-input');
+            var autocomplete = new google.maps.places.Autocomplete(input);
+
+            autocomplete.addListener('place_changed', function() {
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.log("No details available for input: '" + place.name + "'");
+                    return;
+                }
+
+                document.getElementById('id_latitude').value = place.geometry.location.lat();
+                document.getElementById('id_longitude').value = place.geometry.location.lng();
+            });
+        }
+
+        google.maps.event.addDomListener(window, 'load', initAutocomplete);
+
+        document.getElementById('appointment-form').addEventListener('submit', function(e) {
+            var addressInput = document.getElementById('address-input');
+            var latitudeInput = document.getElementById('id_latitude');
+            var longitudeInput = document.getElementById('id_longitude');
+
+            if (addressInput.value && (!latitudeInput.value || !longitudeInput.value)) {
+                e.preventDefault();
+                alert('Please select an address from the dropdown suggestions.');
             }
         });
+
+        // Show and hide doctor/nurse dropdowns based on the selection
+        $('#select-type').change(function() {
+            var selectedType = $(this).val();
+            console.log("Selected type:", selectedType); // Debugging line
+            if (selectedType === 'doctor') {
+                $('#doctor-select-group').show();
+                $('#nurse-select-group').hide();
+                loadStaff('doctor');
+            } else if (selectedType === 'nurse') {
+                $('#doctor-select-group').hide();
+                $('#nurse-select-group').show();
+                loadStaff('nurse');
+            } else {
+                $('#doctor-select-group').hide();
+                $('#nurse-select-group').hide();
+            }
+        });
+
+        // Function to load staff based on the type
+        function loadStaff(type) {
+            $.ajax({
+                url: "{% url 'load_staff' %}",
+                data: {
+                    'doctor_or_nurse': type
+                },
+                success: function(data) {
+                    console.log("Staff data:", data);  // Log the data for debugging
+                    var staffSelect = type === 'doctor' ? $('#id_doctor') : $('#id_nurse');
+                    staffSelect.empty();
+                    staffSelect.append('<option value="">Select ' + type.charAt(0).toUpperCase() + type.slice(1) + '</option>');
+                    $.each(data, function(index, item){
+                        staffSelect.append($('<option>', {
+                            value: item.id,
+                            text: item.name
+                        }));
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error("Failed to load staff: ", status, error);
+                }
+            });
+        }
     });
 </script>
 {% endblock %}

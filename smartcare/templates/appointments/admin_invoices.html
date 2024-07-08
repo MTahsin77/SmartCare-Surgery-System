@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Invoice Summary</h2>
+<p><strong>Total Turnover:</strong> ${{ total_turnover }}</p>
+<p><strong>NHS Charges:</strong> ${{ nhs_charges }}</p>
+<p><strong>Private Payments:</strong> ${{ private_payments }}</p>
+
+<h3>All Invoices</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Invoice ID</th>
+            <th>Patient</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for invoice in invoices %}
+        <tr>
+            <td>{{ invoice.id }}</td>
+            <td>{{ invoice.patient.get_full_name }}</td>
+            <td>{{ invoice.get_patient_type_display }}</td>
+            <td>${{ invoice.total_amount }}</td>
+            <td>{{ invoice.get_payment_status_display }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

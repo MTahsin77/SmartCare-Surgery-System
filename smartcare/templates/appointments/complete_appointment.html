@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Complete Appointment</h2>
+<div class="appointment-details">
+    <p><strong>Patient:</strong> {{ appointment.patient.get_full_name }}</p>
+    <p><strong>Date:</strong> {{ appointment.date }}</p>
+    <p><strong>Time:</strong> {{ appointment.time }}</p>
+    <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to mark this appointment as completed and generate an invoice?</p>
+    <button type="submit" class="btn btn-primary">Complete Appointment and Generate Invoice</button>
+    <a href="{% url 'view_appointments' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

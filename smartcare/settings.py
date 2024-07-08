@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'authentication',
+    'collaboration',
     'appointments',
-    'billing',
     'dashboards',
     'home',
 ]
@@ -119,7 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = True
 
@@ -141,10 +141,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Custom User Model
-AUTH_USER_MODEL = 'authentication.User'
-# Add this line near the bottom of the file
+
 LOGIN_REDIRECT_URL = '/dashboards/dashboard/'
 LOGIN_URL = '/auth/login/'
 AUTH_USER_MODEL = 'authentication.User'
+
+
+GOOGLE_OAUTH2_CLIENT_SECRETS_JSON = os.path.join(BASE_DIR, 'appointments', 'client_secret_***REMOVED***.json')
+GOOGLE_OAUTH2_SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+
+GOOGLE_MAPS_API_KEY = 'AIzaSyC_1ijDkFAqIKJ0jeQF6SI9VDUQO5pGUvk'
+GOOGLE_MAPS_JAVASCRIPT_API = f'https://maps.googleapis.com/maps/api/js?key={GOOGLE_MAPS_API_KEY}&libraries=places'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@smartcaresurgery.com'
 

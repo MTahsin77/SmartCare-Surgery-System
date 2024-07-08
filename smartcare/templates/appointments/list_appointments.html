@@ -1,18 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Your Appointments</title>
-</head>
-<body>
-    <h1>Your Appointments</h1>
-    {% if appointments %}
-        <ul>
-        {% for appointment in appointments %}
-            <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.doctor_or_nurse }} - Reason: {{ appointment.reason }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>You have no appointments scheduled.</p>
-    {% endif %}
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<h1>Your Appointments</h1>
+{% if appointments %}
+    <ul>
+    {% for appointment in appointments %}
+        <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.doctor_or_nurse }} - Reason: {{ appointment.reason }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>You have no appointments scheduled.</p>
+{% endif %}
+{% endblock %}

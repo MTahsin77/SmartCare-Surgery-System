@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Pending Registrations</h2>
+{% if pending %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>User Type</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registration in pending %}
+            <tr>
+                <td>{{ registration.user.username }}</td>
+                <td>{{ registration.user.email }}</td>
+                <td>{{ registration.user.get_user_type_display }}</td>
+                <td>
+                    <a href="{% url 'approve_registration' registration.id %}" class="btn btn-success">Approve</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No pending registrations.</p>
+{% endif %}
+{% endblock %}

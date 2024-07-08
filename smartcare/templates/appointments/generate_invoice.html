@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Generate Invoice for Appointment</h2>
+<p>Patient: {{ appointment.patient.get_full_name }}</p>
+<p>Date: {{ appointment.date }}</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Generate Invoice</button>
+</form>
+{% endblock %}

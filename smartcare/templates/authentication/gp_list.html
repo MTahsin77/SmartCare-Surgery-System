@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}GP List{% endblock %}
+
+{% block content %}
+<h1>GP List</h1>
+<a href="{% url 'manage_gps' %}" class="btn btn-primary">Add New GP</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for gp in gps %}
+        <tr>
+            <td>{{ gp.name }}</td>
+            <td>{{ gp.email }}</td>
+            <td>{{ gp.phone|default:"N/A" }}</td>
+            <td>{{ gp.address|default:"N/A" }}</td>
+            <td>
+                <a href="{% url 'edit_gp' gp.id %}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{% url 'delete_gp' gp.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">No GPs available.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

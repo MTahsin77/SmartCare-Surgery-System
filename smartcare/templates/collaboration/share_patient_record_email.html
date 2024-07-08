@@ -1,0 +1,17 @@
+<p>Dear {{ gp.name }},</p>
+<p>We are sharing the following patient record with you:</p>
+
+<h3>Patient Details</h3>
+<p>Name: {{ patient.get_full_name }}</p>
+<p>Email: {{ patient.email }}</p>
+
+<h3>Prescriptions</h3>
+{% for prescription in prescriptions %}
+    <p>Medication: {{ prescription.medication }}</p>
+    <p>Dosage: {{ prescription.dosage }}</p>
+    <p>Instructions: {{ prescription.instructions }}</p>
+    <hr>
+{% endfor %}
+
+<p>Best regards,</p>
+<p>SmartCare Surgery System</p>

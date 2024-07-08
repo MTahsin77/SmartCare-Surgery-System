@@ -2,11 +2,16 @@
 
 {% block content %}
 <h2>Appointment Details</h2>
-<p>Patient: {{ appointment.patient }}</p>
-<p>Doctor: {{ appointment.doctor }}</p>
+<p>Patient: {{ appointment.patient.get_full_name }}</p>
+<p>Doctor: {{ appointment.doctor.get_full_name|default:"Not assigned" }}</p>
+<p>Nurse: {{ appointment.nurse.get_full_name|default:"Not assigned" }}</p>
 <p>Date: {{ appointment.date }}</p>
 <p>Time: {{ appointment.time }}</p>
 <p>Reason: {{ appointment.reason }}</p>
+
+{% if user.is_doctor or user.is_nurse or user.is_admin %}
+    <a href="{% url 'share_patient_record' appointment.id %}" class="btn btn-primary">Forward Patient</a>
+{% endif %}
 
 <h3>Prescriptions</h3>
 {% if prescriptions %}
@@ -20,6 +25,10 @@
 {% endif %}
 
 {% if user.is_doctor %}
-    <a href="{% url 'issue_prescription' appointment.id %}">Issue New Prescription</a>
+    <a href="{% url 'issue_prescription' appointment.id %}" class="btn btn-secondary">Issue New Prescription</a>
+{% endif %}
+
+{% if user.is_doctor %}
+    <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-secondary">Create Invoice</a>
 {% endif %}
 {% endblock %}

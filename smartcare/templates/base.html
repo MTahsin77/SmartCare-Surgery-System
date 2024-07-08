@@ -3,23 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCare Surgery</title>
+    <title>{% block title %}SmartCare Surgery{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+    <style>
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: rgb(255, 255, 255);
+        }
+    </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="{% url 'homepage' %}">Home</a></li>
-            {% if user.is_authenticated %}
-                <li><a href="{% url 'profile' %}">Profile</a></li>
-                <li><a href="{% url 'list_appointments' %}">Appointments</a></li>
-                <li><a href="{% url 'logout' %}">Logout</a></li>
-            {% else %}
-                <li><a href="{% url 'login' %}">Login</a></li>
-                <li><a href="{% url 'register' %}">Register</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% block content %}
-    {% endblock %}
+    <header>
+        <h1 style="text-align: center;">SmartCare Surgery</h1>
+        <nav style="background-color: #4CAF50; padding: 10px 0;">
+            <ul>
+                <li><a href="{% url 'homepage' %}">Home</a></li>
+                {% if user.is_authenticated %}
+                    {% if user.is_patient %}
+                        <li><a href="{% url 'patient_dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'book_appointment' %}">Book Appointment</a></li>
+                    {% elif user.is_doctor %}
+                        <li><a href="{% url 'doctor_dashboard' %}">Dashboard</a></li>
+                    {% elif user.is_nurse %}
+                        <li><a href="{% url 'nurse_dashboard' %}">Dashboard</a></li>
+                    {% elif user.is_admin %}
+                        <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'manage_users' %}">Manage Users</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'profile' %}">Profile</a></li>
+                    <li><a href="{% url 'view_appointments' %}">Appointments</a></li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 10px 0; background-color: #f9f9f9;">
+        <p>&copy; 2024 SmartCare Surgery System</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

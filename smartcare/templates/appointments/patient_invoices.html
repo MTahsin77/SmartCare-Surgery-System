@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Your Invoices</h2>
+{% if invoices %}
+    <ul>
+    {% for invoice in invoices %}
+        <li>
+            <a href="{% url 'view_invoice' invoice.id %}">
+                Invoice #{{ invoice.id }} - £{{ invoice.total_amount }} - {{ invoice.date_issued|date:"F d, Y" }}
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>You have no invoices.</p>
+{% endif %}
+{% endblock %}

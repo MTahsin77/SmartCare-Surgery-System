@@ -1,111 +1,112 @@
-# dashboards/views.py
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum, Count
+from django.utils import timezone
+from datetime import timedelta
 from authentication.decorators import user_is_patient, user_is_doctor, user_is_nurse, user_is_admin
-from authentication.models import User, UserProfile
-from appointments.models import Appointment
-from .forms import UserForm, UserProfileForm, AppointmentForm, PrescriptionForm
+from authentication.models import User
+from appointments.models import Appointment, Invoice, Prescription
+from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 @login_required
 @user_is_patient
 def patient_dashboard(request):
     appointments = Appointment.objects.filter(patient=request.user)
-    return render(request, 'dashboards/patient_dashboard.html', {'appointments': appointments})
+    prescriptions = Prescription.objects.filter(patient=request.user)
+    invoices = Invoice.objects.filter(patient=request.user)
+    context = {
+        'appointments': appointments,
+        'prescriptions': prescriptions,
+        'invoices': invoices,
+    }
+    return render(request, 'dashboards/patient_dashboard.html', context)
 
 @login_required
 @user_is_doctor
 def doctor_dashboard(request):
     appointments = Appointment.objects.filter(doctor=request.user)
-    return render(request, 'dashboards/doctor_dashboard.html', {'appointments': appointments})
+    prescriptions = Prescription.objects.filter(doctor=request.user)
+    context = {
+        'appointments': appointments,
+        'prescriptions': prescriptions,
+    }
+    return render(request, 'dashboards/doctor_dashboard.html', context)
 
 @login_required
 @user_is_nurse
 def nurse_dashboard(request):
     appointments = Appointment.objects.filter(nurse=request.user)
-    return render(request, 'dashboards/nurse_dashboard.html', {'appointments': appointments})
+    context = {
+        'appointments': appointments,
+    }
+    return render(request, 'dashboards/nurse_dashboard.html', context)
 
 @login_required
 @user_is_admin
 def admin_dashboard(request):
-    return render(request, 'dashboards/admin_dashboard.html')
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=30)
+
+    if request.method == 'POST':
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+    invoices = Invoice.objects.filter(date_issued__range=[start_date, end_date])
+
+    daily_turnover = invoices.values('date_issued__date').annotate(total=Sum('total_amount'))
+    weekly_turnover = invoices.values('date_issued__week').annotate(total=Sum('total_amount'))
+    monthly_turnover = invoices.values('date_issued__month').annotate(total=Sum('total_amount'))
+
+    patient_stats = Appointment.objects.filter(date__range=[start_date, end_date]).values('patient__user_type').annotate(count=Count('id'))
+
+    context = {
+        'daily_turnover': daily_turnover,
+        'weekly_turnover': weekly_turnover,
+        'monthly_turnover': monthly_turnover,
+        'patient_stats': patient_stats,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+
+    return render(request, 'dashboards/admin_dashboard.html', context)
 
 @login_required
 @user_is_admin
 def manage_users(request):
     if request.method == 'POST':
-        user_form = UserForm(request.POST)
-        profile_form = UserProfileForm(request.POST)
-        if user_form.is_valid() and profile_form.is_valid():
-            user = user_form.save()
-            profile = profile_form.save(commit=False)
-            profile.user = user
-            profile.save()
-            messages.success(request, 'User has been created/updated successfully.')
+        if 'create_user' in request.POST:
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'User has been created successfully.')
+                return redirect('manage_users')
+        elif 'edit_user' in request.POST:
+            user_id = request.POST.get('user_id')
+            user = get_object_or_404(User, id=user_id)
+            form = CustomUserChangeForm(request.POST, instance=user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'User has been updated successfully.')
+                return redirect('manage_users')
+        elif 'delete_user' in request.POST:
+            user_id = request.POST.get('user_id')
+            user = get_object_or_404(User, id=user_id)
+            user.delete()
+            messages.success(request, 'User has been deleted successfully.')
             return redirect('manage_users')
     else:
-        user_form = UserForm()
-        profile_form = UserProfileForm()
-    
+        form = CustomUserCreationForm()
+
     users = User.objects.all()
-    return render(request, 'dashboards/manage_users.html', {'users': users, 'user_form': user_form, 'profile_form': profile_form})
+    return render(request, 'dashboards/manage_users.html', {'users': users, 'form': form})
 
 @login_required
 @user_is_admin
 def manage_appointments(request):
-    if request.method == 'POST':
-        form = AppointmentForm(request.POST)
-        if form.is_valid():
-            appointment = form.save(commit=False)
-            if form.cleaned_data['doctor_or_nurse'] == 'doctor':
-                appointment.doctor = form.cleaned_data['doctor']
-                appointment.nurse = None
-            else:
-                appointment.nurse = form.cleaned_data['nurse']
-                appointment.doctor = None
-            appointment.save()
-            messages.success(request, 'Appointment has been created/updated successfully.')
-            return redirect('manage_appointments')
-    else:
-        form = AppointmentForm()
-    
-    appointments = Appointment.objects.all()
-    return render(request, 'dashboards/manage_appointments.html', {'appointments': appointments, 'form': form})
-
-@login_required
-@user_is_admin
-def approve_doctors(request):
-    if request.method == 'POST':
-        doctor_id = request.POST.get('doctor_id')
-        doctor = User.objects.get(id=doctor_id)
-        doctor.is_approved = True
-        doctor.save()
-        messages.success(request, f'Doctor {doctor.username} has been approved.')
-        return redirect('approve_doctors')
-    
-    pending_doctors = User.objects.filter(user_type='doctor', is_approved=False)
-    return render(request, 'dashboards/approve_doctors.html', {'pending_doctors': pending_doctors})
-
-@login_required
-@user_is_doctor
-def issue_prescription(request, appointment_id):
-    appointment = Appointment.objects.get(id=appointment_id)
-    if request.method == 'POST':
-        form = PrescriptionForm(request.POST)
-        if form.is_valid():
-            prescription = form.save(commit=False)
-            prescription.appointment = appointment
-            prescription.doctor = request.user
-            prescription.save()
-            messages.success(request, 'Prescription has been issued successfully.')
-            return redirect('doctor_dashboard')
-    else:
-        form = PrescriptionForm()
-    return render(request, 'dashboards/issue_prescription.html', {'form': form, 'appointment': appointment})
-
-@login_required
-@user_is_admin
-def view_turnover(request):
-    # This is a placeholder for the turnover view
-    # You'll need to implement the logic to calculate and display turnover
-    return render(request, 'dashboards/view_turnover.html')
+    appointments = Appointment.objects.all().order_by('-date', '-time')
+    context = {
+        'appointments': appointments,
+    }
+    return render(request, 'dashboards/manage_appointments.html', context)

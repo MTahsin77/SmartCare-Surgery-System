@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Share Patient Record{% endblock %}
+{% block content %}
+<h2>Share Patient Record for {{ patient.get_full_name }}</h2>
+{% if gps %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="gp_id">Select GP:</label>
+            <select name="gp_id" id="gp_id" class="form-control" required>
+                <option value="">Select a GP</option>
+                {% for gp in gps %}
+                <option value="{{ gp.id }}">{{ gp.name }} - {{ gp.email }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Share</button>
+    </form>
+{% else %}
+    <p class="alert alert-warning">No GPs available. Please add GPs to the system before sharing patient records.</p>
+{% endif %}
+
+<a href="{% url 'view_appointments' %}" class="btn btn-secondary mt-3">Back to Appointments</a>
+{% endblock %}

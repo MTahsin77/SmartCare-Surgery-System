@@ -1,16 +1,19 @@
-# dashboards/forms.py
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from authentication.models import UserProfile
-from appointments.models import Appointment, Prescription
 
 User = get_user_model()
 
-class UserForm(forms.ModelForm):
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'user_type', 'password1', 'password2']
+
+class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'user_type']
-        # Remove 'password' from here as it should be handled separately for security reasons
 
 class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30)
@@ -38,15 +41,3 @@ class UserProfileForm(forms.ModelForm):
             user.save()
             profile.save()
         return profile
-
-class AppointmentForm(forms.ModelForm):
-    class Meta:
-        model = Appointment
-        fields = ['patient', 'doctor', 'nurse', 'date', 'time', 'reason', 'address']
-    
-    doctor_or_nurse = forms.ChoiceField(choices=[('doctor', 'Doctor'), ('nurse', 'Nurse')])
-
-class PrescriptionForm(forms.ModelForm):
-    class Meta:
-        model = Prescription
-        fields = ['medication', 'dosage', 'instructions']

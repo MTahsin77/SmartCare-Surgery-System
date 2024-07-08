@@ -1,44 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <header>
-        <h1>Manage Users</h1>
-    </header>
-    <nav>
-        <ul>
-            <li><a href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
-            <li><a href="{% url 'manage_users' %}">Manage Users</a></li>
-            <li><a href="{% url 'manage_appointments' %}">Manage Appointments</a></li>
-            <li><a href="{% url 'approve_doctors' %}">Approve Doctors</a></li>
-            <li><a href="{% url 'view_turnover' %}">View Turnover</a></li>
-            <li><a href="{% url 'profile' %}">Profile</a></li>
-            <li><a href="{% url 'user_logout' %}">Logout</a></li>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<header style="text-align: center; margin-top: 20px;">
+    <h1>Manage Users</h1>
+</header>
+<main style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <section style="background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <h2 style="text-align: center; margin-bottom: 20px;">Users List</h2>
+        <ul style="list-style: none; padding: 0;">
+            {% for user in users %}
+                <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #ddd;">
+                    <span>{{ user.username }} - {{ user.user_type }}</span>
+                    <div style="display: flex; gap: 5px;">
+                        <button onclick="editUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.user_type }}')" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+                        <form action="{% url 'manage_users' %}" method="post" style="margin: 0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button type="submit" name="delete_user" style="background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
         </ul>
-    </nav>
-    <main>
-        <section>
-            <h2>Users List</h2>
-            <ul>
-                {% for user in users %}
-                    <li>{{ user.username }} - {{ user.user_type }}</li>
-                {% endfor %}
-            </ul>
-            <h2>Create/Update User</h2>
-            <form method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Submit</button>
-            </form>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2024 SmartCare Surgery System</p>
-    </footer>
-</body>
-</html>
+        <h2 style="text-align: center; margin-top: 20px;">Create/Update User</h2>
+        <form method="post" style="max-width: 600px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="hidden" name="user_id" id="user_id">
+            <button type="submit" name="create_user" id="create_user_button" style="display: inline; background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Create User</button>
+            <button type="submit" name="edit_user" id="edit_user_button" style="display: none; background-color: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Update User</button>
+        </form>
+    </section>
+</main>
+<script>
+    function editUser(id, username, email, userType) {
+        document.getElementById('user_id').value = id;
+        document.getElementById('id_username').value = username;
+        document.getElementById('id_email').value = email;
+        document.getElementById('id_user_type').value = userType;
+        document.getElementById('create_user_button').style.display = 'none';
+        document.getElementById('edit_user_button').style.display = 'inline';
+    }
+</script>
+{% endblock %}
