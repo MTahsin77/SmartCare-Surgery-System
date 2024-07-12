@@ -9,13 +9,35 @@
 </header>
 <main style="max-width: 800px; margin: 0 auto; padding: 20px;">
     <section style="background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <h2 style="text-align: center; margin-bottom: 20px;">Filter Users</h2>
+        <form method="get" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <select name="user_type" style="padding: 5px; border-radius: 4px;">
+                <option value="">All Patient Types</option>
+                <option value="nhs" {% if user_type_filter == 'nhs' %}selected{% endif %}>NHS</option>
+                <option value="private" {% if user_type_filter == 'private' %}selected{% endif %}>Private</option>
+            </select>
+            <select name="user_role" style="padding: 5px; border-radius: 4px;">
+                <option value="">All Roles</option>
+                <option value="patient" {% if user_role_filter == 'patient' %}selected{% endif %}>Patient</option>
+                <option value="doctor" {% if user_role_filter == 'doctor' %}selected{% endif %}>Doctor</option>
+                <option value="nurse" {% if user_role_filter == 'nurse' %}selected{% endif %}>Nurse</option>
+                <option value="admin" {% if user_role_filter == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+            <button type="submit" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Filter</button>
+        </form>
+        
         <h2 style="text-align: center; margin-bottom: 20px;">Users List</h2>
         <ul style="list-style: none; padding: 0;">
             {% for user in users %}
                 <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #ddd;">
-                    <span>{{ user.username }} - {{ user.user_type }}</span>
+                    <span>
+                        {{ user.username }} - {{ user.get_user_type_display }}
+                        {% if user.user_type == 'patient' %} ({{ user.get_patient_type_display }}){% endif %}
+                        {% if user.date_of_birth %} - DOB: {{ user.date_of_birth|date:"M d, Y" }}{% endif %}
+                        {% if not user.is_active %} (Inactive){% endif %}
+                    </span>
                     <div style="display: flex; gap: 5px;">
-                        <button onclick="editUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.user_type }}')" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+                        <button onclick="editUser('{{ user.id }}', '{{ user.username }}', '{{ user.email }}', '{{ user.user_type }}', '{{ user.first_name }}', '{{ user.last_name }}', '{{ user.patient_type }}', '{{ user.date_of_birth|date:"Y-m-d" }}', {{ user.is_active|yesno:'true,false' }})" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
                         <form action="{% url 'manage_users' %}" method="post" style="margin: 0;">
                             {% csrf_token %}
                             <input type="hidden" name="user_id" value="{{ user.id }}">
@@ -25,24 +47,50 @@
                 </li>
             {% endfor %}
         </ul>
-        <h2 style="text-align: center; margin-top: 20px;">Create/Update User</h2>
+        <h2 style="text-align: center; margin-top: 20px;">Edit User</h2>
         <form method="post" style="max-width: 600px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
             {% csrf_token %}
-            {{ form.as_p }}
-            <input type="hidden" name="user_id" id="user_id">
-            <button type="submit" name="create_user" id="create_user_button" style="display: inline; background-color: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Create User</button>
-            <button type="submit" name="edit_user" id="edit_user_button" style="display: none; background-color: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Update User</button>
+            <input type="hidden" name="user_id" id="edit_user_id">
+            {% for field in form %}
+                <div style="margin-bottom: 15px;">
+                    <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small style="color: #666;">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p style="color: red;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit" name="edit_user" style="background-color: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Update User</button>
         </form>
     </section>
 </main>
 <script>
-    function editUser(id, username, email, userType) {
-        document.getElementById('user_id').value = id;
+    function editUser(id, username, email, userType, firstName, lastName, patientType, dateOfBirth, isActive) {
+        document.getElementById('edit_user_id').value = id;
         document.getElementById('id_username').value = username;
         document.getElementById('id_email').value = email;
         document.getElementById('id_user_type').value = userType;
-        document.getElementById('create_user_button').style.display = 'none';
-        document.getElementById('edit_user_button').style.display = 'inline';
+        document.getElementById('id_first_name').value = firstName;
+        document.getElementById('id_last_name').value = lastName;
+        document.getElementById('id_date_of_birth').value = dateOfBirth;
+        if (document.getElementById('id_patient_type')) {
+            document.getElementById('id_patient_type').value = patientType;
+        }
+        if (document.getElementById('id_is_active')) {
+            document.getElementById('id_is_active').checked = isActive;
+        }
+        // Clear password fields
+        if (document.getElementById('id_password1')) {
+            document.getElementById('id_password1').value = '';
+        }
+        if (document.getElementById('id_password2')) {
+            document.getElementById('id_password2').value = '';
+        }
+        // Scroll to the edit form
+        document.querySelector('form[method="post"]').scrollIntoView({behavior: 'smooth'});
     }
 </script>
 {% endblock %}

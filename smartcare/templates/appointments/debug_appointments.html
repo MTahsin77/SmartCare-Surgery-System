@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>All Appointments (Debug View)</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Patient</th>
+            <th>Doctor/Nurse</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appointment in appointments %}
+        <tr>
+            <td>{{ appointment.id }}</td>
+            <td>{{ appointment.date }}</td>
+            <td>{{ appointment.time }}</td>
+            <td>{{ appointment.patient.get_full_name }}</td>
+            <td>
+                {% if appointment.doctor %}
+                    Dr. {{ appointment.doctor.get_full_name }}
+                {% elif appointment.nurse %}
+                    Nurse {{ appointment.nurse.get_full_name }}
+                {% endif %}
+            </td>
+            <td>{{ appointment.get_status_display }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

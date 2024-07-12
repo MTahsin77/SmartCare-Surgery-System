@@ -27,6 +27,7 @@
                 <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-sm btn-info">View</a>
                 <a href="{% url 'reschedule_appointment' appointment.id %}" class="btn btn-sm btn-warning">Reschedule</a>
                 <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-sm btn-danger">Cancel</a>
+                <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-sm btn-success">Complete</a>
             </td>
         </tr>
         {% endfor %}

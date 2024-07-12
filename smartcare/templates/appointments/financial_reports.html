@@ -1,77 +1,159 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<h2>Financial Reports</h2>
+{% block extra_head %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
-    </div>
-    <div class="form-group">
-        <label for="end_date">End Date:</label>
-        <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
-    </div>
-    <button type="submit" class="btn btn-primary">Generate Report</button>
-</form>
+    .form-group {
+        margin-bottom: 15px;
+    }
 
-<h3>Summary</h3>
-<p><strong>Total Turnover:</strong> £{{ total_turnover }}</p>
-<p><strong>NHS Charges:</strong> £{{ nhs_charges }}</p>
-<p><strong>Private Payments:</strong> £{{ private_payments }}</p>
+    .form-group label {
+        font-weight: bold;
+    }
 
-<h3>Daily Turnover</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for day in daily_turnover %}
-            <tr>
-                <td>{{ day.date_issued__date }}</td>
-                <td>£{{ day.total }}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
 
-<h3>Weekly Turnover</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Week</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for week in weekly_turnover %}
-            <tr>
-                <td>Week {{ week.date_issued__week }}</td>
-                <td>£{{ week.total }}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    .btn-primary {
+        background-color: #4CAF50;
+        border: none;
+        padding: 10px 20px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
 
-<h3>Monthly Turnover</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Month</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for month in monthly_turnover %}
-            <tr>
-                <td>{{ month.date_issued__month|date:"F Y" }}</td>
-                <td>£{{ month.total }}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+
+    h2, h3 {
+        color: #4CAF50;
+        text-align: center;
+    }
+
+    table.table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    table.table th, table.table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+    table.table th {
+        background-color: #f4f4f4;
+    }
+
+    table.table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .summary {
+        background-color: #f4f4f4;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .summary p {
+        font-size: 18px;
+        margin: 5px 0;
+    }
+</style>
 {% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Financial Reports</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+    </form>
+
+    <div class="summary">
+        <h3>Summary</h3>
+        <p><strong>Total Turnover:</strong> £{{ total_turnover }}</p>
+        <p><strong>NHS Charges:</strong> £{{ nhs_charges }}</p>
+        <p><strong>Private Payments:</strong> £{{ private_payments }}</p>
+    </div>
+
+    <h3>Daily Turnover</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in daily_turnover %}
+                <tr>
+                    <td>{{ day.date_issued__date }}</td>
+                    <td>£{{ day.total }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <h3>Weekly Turnover</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Week</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in weekly_turnover %}
+                <tr>
+                    <td>Week {{ week.date_issued__week }}</td>
+                    <td>£{{ week.total }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <div class="container text-center">
+        <h3>Monthly Turnover</h3>
+        <div class="d-flex justify-content-center">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month in monthly_turnover %}
+                        <tr>
+                            <td style="text-align: center;">£{{ month.total }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endblock %}

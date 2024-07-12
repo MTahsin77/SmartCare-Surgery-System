@@ -1,48 +1,131 @@
 {% extends 'base.html' %}
-{% block title %}Patient Dashboard{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .dashboard-card h2 {
+        color: #4CAF50;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .btn-custom {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .btn-custom:hover {
+        background-color: #45a049;
+    }
+    .list-item {
+        background-color: #f1f8e9;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .list-item a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    .list-item a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Patient Dashboard</h1>
+<div class="dashboard-container">
+    <h1 class="text-center mb-4">Welcome, {{ user.get_full_name }}</h1>
 
-<section>
-    <h2>Your Upcoming Appointments</h2>
-    {% if appointments %}
-        <ul>
-        {% for appointment in appointments %}
-            <li>
-                {{ appointment.date|date:"F d, Y" }} at {{ appointment.time|time:"H:i" }} 
-                with {% if appointment.doctor %}Dr. {{ appointment.doctor.get_full_name }}{% else %}Nurse {{ appointment.nurse.get_full_name }}{% endif %}
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>You have no upcoming appointments.</p>
-    {% endif %}
-    <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book New Appointment</a>
-</section>
+    <div class="action-buttons">
+    <ul>
+        <li><a href="{% url 'book_appointment' %}" class="btn-custom">Book New Appointment</a></li>
+        <li><a href="{% url 'view_appointments' %}" class="btn-custom">View All Appointments</a></li>
+    </ul>
+    </div>
 
-<section>
-    <h2>Your Prescriptions</h2>
-    {% if prescriptions %}
-        <ul>
-        {% for prescription in prescriptions %}
-            <li>{{ prescription.medication }} - {{ prescription.dosage }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>You have no active prescriptions.</p>
-    {% endif %}
-</section>
+    <div class="dashboard-card">
+        <h2>Your Prescriptions</h2>
+        {% if prescriptions %}
+            <ul class="list-unstyled">
+                {% for prescription in prescriptions %}
+                <li class="list-item">
+                    <a href="{% url 'prescription_detail' prescription.id %}">
+                        {{ prescription.medication }} - {{ prescription.dosage }}
+                    </a>
+                    <span>Prescribed: {{ prescription.date_prescribed|date:"F d, Y" }}</span>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no active prescriptions.</p>
+        {% endif %}
+        <a href="{% url 'view_prescriptions' %}" class="btn btn-secondary mt-3">View All Prescriptions</a>
+    </div>
 
-<section>
-    <h2>Your Invoices</h2>
-    {% if invoices %}
-        <ul>
-        {% for invoice in invoices %}
-            <li>Invoice #{{ invoice.id }} - ${{ invoice.total_amount }} ({{ invoice.get_payment_status_display }})</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>You have no invoices.</p>
-    {% endif %}
-</section>
+    <div class="dashboard-card">
+        <h2>Your Invoices</h2>
+        {% if invoices %}
+            <ul class="list-unstyled">
+            {% for invoice in invoices %}
+                <li class="list-item">
+                    <a href="{% url 'view_edit_invoice' invoice.id %}">
+                        Invoice #{{ invoice.id }} - £{{ invoice.total_amount }}
+                    </a>
+                    <span class="badge {% if invoice.payment_status == 'PAID' %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ invoice.get_payment_status_display }}
+                    </span>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no invoices.</p>
+        {% endif %}
+        <a href="{% url 'patient_invoices' %}" class="btn btn-secondary mt-3">View All Invoices</a>
+    </div>
+
+    <div class="dashboard-card">
+        <h2>Your Upcoming Appointments</h2>
+        {% if appointments %}
+            <ul class="appointment-list">
+            {% for appointment in appointments %}
+            {% if appointment.status == 'SCHEDULED' %}
+                <li class="appointment-item">
+                    <span>
+                        {{ appointment.date|date:"F d, Y" }} at {{ appointment.time|time:"H:i" }}
+                    </span>
+                    <a href="{% url 'appointment_detail' appointment.id %}" class="btn-details">Details</a>
+                </li>
+            {% endif %}
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no upcoming appointments.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

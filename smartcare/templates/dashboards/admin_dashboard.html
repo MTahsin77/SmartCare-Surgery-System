@@ -1,57 +1,74 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Admin Dashboard</h1>
+<h1 style="text-align: center; margin-top: 20px;">Admin Dashboard</h1>
 
-<section>
-    <h2>Turnover Reports</h2>
-    <form method="post">
-        {% csrf_token %}
-        <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
-        <label for="end_date">End Date:</label>
-        <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
-        <button type="submit">Generate Report</button>
-    </form>
+<section style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+        <h2 style="text-align: center; margin-bottom: 20px;">Turnover Reports</h2>
+        <form method="post" style="display: flex; flex-direction: column; gap: 10px;">
+            {% csrf_token %}
+            <div style="display: flex; justify-content: space-between;">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" style="padding: 5px; border-radius: 4px;">
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" style="padding: 5px; border-radius: 4px;">
+            </div>
+            <button type="submit" style="background-color: #4CAF50; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Generate Report</button>
+        </form>
 
-    <h3>Daily Turnover</h3>
-    <ul>
-    {% for day in daily_turnover %}
-        <li>{{ day.date_issued__date|date:"F d, Y" }}: ${{ day.total }}</li>
-    {% endfor %}
-    </ul>
+        <div style="margin-top: 20px;">
+            <h3 style="color: #4CAF50;">Daily Turnover</h3>
+            <ul style="list-style: none; padding: 0;">
+            {% for day in daily_turnover %}
+                <li>{{ day.date_issued__date|date:"F d, Y" }}: £{{ day.total }}</li>
+            {% endfor %}
+            </ul>
+        </div>
 
-    <h3>Weekly Turnover</h3>
-    <ul>
-    {% for week in weekly_turnover %}
-        <li>Week {{ week.date_issued__week }}: ${{ week.total }}</li>
-    {% endfor %}
-    </ul>
+        <div style="margin-top: 20px;">
+            <h3 style="color: #4CAF50;">Weekly Turnover</h3>
+            <ul style="list-style: none; padding: 0;">
+            {% for week in weekly_turnover %}
+                <li>Week {{ week.date_issued__week }}: £{{ week.total }}</li>
+            {% endfor %}
+            </ul>
+        </div>
 
-    <h3>Monthly Turnover</h3>
-    <ul>
-    {% for month in monthly_turnover %}
-        <li>{{ month.date_issued__month|date:"F Y" }}: ${{ month.total }}</li>
-    {% endfor %}
-    </ul>
+        <div style="margin-top: 20px;">
+            <h3 style="color: #4CAF50;">Monthly Turnover</h3>
+            <ul style="list-style: none; padding: 0;">
+            {% for month in monthly_turnover %}
+                <li>{{ month.date_issued__date|date:"F Y" }} £{{ month.total }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
 </section>
 
-<section>
-    <h2>Patient Statistics</h2>
-    <ul>
-    {% for stat in patient_stats %}
-        <li>{{ stat.patient__user_type }}: {{ stat.count }} appointments</li>
-    {% endfor %}
-    </ul>
+<section style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+        <h2 style="text-align: center; margin-bottom: 20px;">Patient Statistics</h2>
+        <ul style="list-style: none; padding: 0;">
+        {% for stat in patient_stats %}
+            <li>{{ stat.patient__user_type }}: {{ stat.count }} appointments</li>
+        {% endfor %}
+        </ul>
+    </div>
 </section>
 
-<section>
-    <h2>Quick Links</h2>
-    <ul>
-        <li><a href="{% url 'manage_users' %}">Manage Users</a></li>
-        <li><a href="{% url 'gp_list' %}">Manage GPs</a></li>
-        <a href="{% url 'manage_appointments' %}">Manage Appointments</a> <br>
-        <a href="{% url 'pending_registrations' %}">View Pending Registrations</a>
-    </ul>
+<section style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <h2 style="text-align: center; margin-bottom: 20px;">Quick Links</h2>
+        <ul style="list-style: none; padding: 0; text-align: center;">
+            <li style="margin-bottom: 10px;"><a href="{% url 'manage_users' %}" style="color: #007BFF; text-decoration: none;">Manage Users</a></li>
+            <li style="margin-bottom: 10px;"><a href="{% url 'gp_list' %}" style="color: #007BFF; text-decoration: none;">Manage GPs</a></li>
+            <li style="margin-bottom: 10px;"><a href="{% url 'financial_reports' %}" style="color: #007BFF; text-decoration: none;">Financial Reports</a></li>
+            <li style="margin-bottom: 10px;"><a href="{% url 'manage_appointments' %}" style="color: #007BFF; text-decoration: none;">Manage Appointments</a></li>
+            <li style="margin-bottom: 10px;"><a href="{% url 'pending_registrations' %}" style="color: #007BFF; text-decoration: none;">View Pending Registrations</a></li>
+        </ul>
+    </div>
 </section>
 {% endblock %}

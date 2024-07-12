@@ -1,24 +1,220 @@
 {% extends 'base.html' %}
-{% block title %}Share Patient Record{% endblock %}
-{% block content %}
-<h2>Share Patient Record for {{ patient.get_full_name }}</h2>
-{% if gps %}
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="gp_id">Select GP:</label>
-            <select name="gp_id" id="gp_id" class="form-control" required>
-                <option value="">Select a GP</option>
-                {% for gp in gps %}
-                <option value="{{ gp.id }}">{{ gp.name }} - {{ gp.email }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Share</button>
-    </form>
-{% else %}
-    <p class="alert alert-warning">No GPs available. Please add GPs to the system before sharing patient records.</p>
-{% endif %}
+{% load static %}
 
-<a href="{% url 'view_appointments' %}" class="btn btn-secondary mt-3">Back to Appointments</a>
+{% block content %}
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: Arial, sans-serif;
+    }
+    
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+        background-color: #f0f2f5;
+    }
+
+    .content-wrapper {
+        width: 100%;
+        max-width: 800px;
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .search-form {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .search-form input[type="text"] {
+        width: 70%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+
+    .search-form button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .patient-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .patient-table th, 
+    .patient-table td {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .patient-table th {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .patient-table tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .btn-select {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .btn-select:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<div class="main-container">
+    <div class="content-wrapper">
+        <form method="get" class="search-form">
+            <input type="text" name="search" placeholder="Search by name, email, or DOB" value="{{ search_query }}">
+            <button type="submit">Search</button>
+        </form>
+
+        <table class="patient-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Date of Birth</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in page_obj %}
+                <tr>
+                    <td>{{ patient.get_full_name }}</td>
+                    <td>{{ patient.email }}</td>
+                    <td>{{ patient.date_of_birth }}</td>
+                    <td>
+                        <button class="btn-select" data-patient-id="{{ patient.id }}">Select</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if page_obj.has_other_pages %}
+        <div class="pagination" style="text-align: center; margin-top: 20px;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}" style="margin-right: 10px;">&laquo; Previous</a>
+            {% endif %}
+
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <span style="font-weight: bold; margin: 0 5px;">{{ i }}</span>
+                {% else %}
+                    <a href="?page={{ i }}&search={{ search_query }}" style="margin: 0 5px;">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}" style="margin-left: 10px;">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareModalLabel">Share Patient Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="shareForm">
+                    <div class="form-group">
+                        <label for="gpSelect">Select GP:</label>
+                        <select class="form-control" id="gpSelect" required>
+                            {% for gp in gps %}
+                                <option value="{{ gp.id }}">{{ gp.name }} ({{ gp.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea class="form-control" id="message" rows="5" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="shareButton">Share</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedPatientId;
+
+        document.querySelectorAll('.btn-select').forEach(function(button) {
+            button.addEventListener('click', function() {
+                selectedPatientId = this.dataset.patientId;
+                $('#shareModal').modal('show');
+            });
+        });
+
+        document.getElementById('shareButton').addEventListener('click', function() {
+            const gpId = document.getElementById('gpSelect').value;
+            const message = document.getElementById('message').value;
+
+            fetch('{% url "share_patient_record" %}', {
+                method: 'POST',
+                body: JSON.stringify({
+                    patient_id: selectedPatientId,
+                    gp_id: gpId,
+                    message: message
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Patient details shared successfully!');
+                    $('#shareModal').modal('hide');
+                    const selectedButton = document.querySelector(`.btn-select[data-patient-id="${selectedPatientId}"]`);
+                    selectedButton.textContent = 'Shared';
+                    selectedButton.disabled = true;
+                } else {
+                    alert('Error sharing patient details. Please try again.');
+                }
+            })
+            .catch(() => {
+                alert('Error sharing patient details. Please try again.');
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -8,12 +8,37 @@ User = get_user_model()
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ['username', 'email', 'user_type', 'password1', 'password2']
+        fields = ['username', 'email', 'first_name', 'last_name', 'date_of_birth', 'user_type', 'patient_type', 'is_active']
 
 class CustomUserChangeForm(UserChangeForm):
+    password1 = forms.CharField(label='Password', widget=forms.PasswordInput, required=False)
+    password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput, required=False)
+    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False)
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'user_type']
+        fields = ['username', 'email', 'first_name', 'last_name', 'date_of_birth', 'user_type', 'patient_type', 'is_active']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.pop('password')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match")
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data.get('password1')
+        if password:
+            user.set_password(password)
+        if commit:
+            user.save()
+        return user
 
 class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30)
@@ -41,3 +66,4 @@ class UserProfileForm(forms.ModelForm):
             user.save()
             profile.save()
         return profile
+

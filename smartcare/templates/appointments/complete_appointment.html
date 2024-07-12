@@ -8,10 +8,10 @@
     <p><strong>Time:</strong> {{ appointment.time }}</p>
     <p><strong>Reason:</strong> {{ appointment.reason }}</p>
 </div>
-<form method="post">
+<form method="post" action="{% url 'generate_invoice' appointment.id %}">
     {% csrf_token %}
     <p>Are you sure you want to mark this appointment as completed and generate an invoice?</p>
     <button type="submit" class="btn btn-primary">Complete Appointment and Generate Invoice</button>
-    <a href="{% url 'view_appointments' %}" class="btn btn-secondary">Cancel</a>
+    <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

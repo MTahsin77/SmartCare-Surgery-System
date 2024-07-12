@@ -28,7 +28,6 @@
 </head>
 <body>
     <header>
-        <h1 style="text-align: center;">SmartCare Surgery</h1>
         <nav style="background-color: #4CAF50; padding: 10px 0;">
             <ul>
                 <li><a href="{% url 'homepage' %}">Home</a></li>
@@ -36,13 +35,20 @@
                     {% if user.is_patient %}
                         <li><a href="{% url 'patient_dashboard' %}">Dashboard</a></li>
                         <li><a href="{% url 'book_appointment' %}">Book Appointment</a></li>
+                        <li><a href="{% url 'patient_invoices' %}">My Invoices</a></li>
                     {% elif user.is_doctor %}
                         <li><a href="{% url 'doctor_dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'list_invoices' %}">Invoices</a></li>
+                        <li><a href="{% url 'view_cfc_appointments' %}">Overview</a></li>
                     {% elif user.is_nurse %}
                         <li><a href="{% url 'nurse_dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'list_invoices' %}">Invoices</a></li>
+                        <li><a href="{% url 'view_cfc_appointments' %}">Overview</a></li>
                     {% elif user.is_admin %}
                         <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
                         <li><a href="{% url 'manage_users' %}">Manage Users</a></li>
+                        <li><a href="{% url 'admin_invoices' %}">Manage Invoices</a></li>
+                        <li><a href="{% url 'view_cfc_appointments' %}">Overview</a></li>
                     {% endif %}
                     <li><a href="{% url 'profile' %}">Profile</a></li>
                     <li><a href="{% url 'view_appointments' %}">Appointments</a></li>

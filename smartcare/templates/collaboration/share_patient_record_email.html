@@ -1,17 +1,33 @@
-<p>Dear {{ gp.name }},</p>
-<p>We are sharing the following patient record with you:</p>
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Patient Details Shared</h2>
+    <p>Dear {{ gp.name }},</p>
+    <p>The following patient details have been shared with you:</p>
 
-<h3>Patient Details</h3>
-<p>Name: {{ patient.get_full_name }}</p>
-<p>Email: {{ patient.email }}</p>
+    <h3>Patient Information:</h3>
+    <ul>
+        <li>Name: {{ patient_details.name }}</li>
+        <li>Email: {{ patient_details.email }}</li>
+        <li>Date of Birth: {{ patient_details.date_of_birth }}</li>
+        <li>Address: {{ patient_details.address }}</li>
+        <li>Phone: {{ patient_details.phone_number }}</li>
+        <li>Patient Type: {{ patient_details.patient_type }}</li>
+    </ul>
 
-<h3>Prescriptions</h3>
-{% for prescription in prescriptions %}
-    <p>Medication: {{ prescription.medication }}</p>
-    <p>Dosage: {{ prescription.dosage }}</p>
-    <p>Instructions: {{ prescription.instructions }}</p>
-    <hr>
-{% endfor %}
+    <h3>Prescriptions:</h3>
+    {% for prescription in prescriptions %}
+    <div style="margin-bottom: 20px;">
+        <p><strong>Medication:</strong> {{ prescription.medication }}</p>
+        <p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
+        <p><strong>Instructions:</strong> {{ prescription.instructions }}</p>
+        <p><strong>Date Prescribed:</strong> {{ prescription.date_prescribed }}</p>
+    </div>
+    {% endfor %}
 
-<p>Best regards,</p>
-<p>SmartCare Surgery System</p>
+    <h3>Message from Doctor:</h3>
+    <p>{{ message }}</p>
+
+    <p>Best regards,<br>SmartCare Surgery System</p>
+</body>
+</html>

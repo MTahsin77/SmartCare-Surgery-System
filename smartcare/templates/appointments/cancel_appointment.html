@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Appointment{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Cancel Appointment</h2>
+    <div class="alert alert-warning" role="alert">
+        Are you sure you want to cancel this appointment?
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Appointment Details</h5>
+            <p><strong>Patient:</strong> {{ appointment.patient.get_full_name }}</p>
+            <p><strong>Date:</strong> {{ appointment.date }}</p>
+            <p><strong>Time:</strong> {{ appointment.time }}</p>
+            <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+            {% if appointment.doctor %}
+                <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.get_full_name }}</p>
+            {% elif appointment.nurse %}
+                <p><strong>Nurse:</strong> {{ appointment.nurse.get_full_name }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="cancellation_reason">Reason for cancellation (optional):</label>
+            <textarea class="form-control" id="cancellation_reason" name="cancellation_reason" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+        <a href="{% url 'view_appointments' %}" class="btn btn-secondary">Back to Appointments</a>
+    </form>
+</div>
+{% endblock %}

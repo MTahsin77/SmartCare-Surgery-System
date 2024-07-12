@@ -1,39 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nurse Dashboard</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <header>
-        <h1>Welcome to Your Dashboard, {{ user.username }}</h1>
-    </header>
-    <nav>
-        <ul>
-            <li><a href="{% url 'nurse_dashboard' %}">My Appointments</a></li>
-            <li><a href="{% url 'profile' %}">Profile</a></li>
-            <li><a href="{% url 'logout' %}">Logout</a></li>
-        </ul>
-    </nav>
-    <main>
-        <section>
-            <h2>Today's Appointments</h2>
-            {% if appointments %}
-                <ul>
-                    {% for appointment in appointments %}
-                        <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.patient.username }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No appointments for today.</p>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .dashboard-card h2 {
+        color: #4CAF50;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .appointment-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .appointment-item {
+        background-color: #f1f8e9;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-details {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .btn-details:hover {
+        background-color: #45a049;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="text-center mb-4">Welcome, Nurse {{ user.get_full_name }}</h1>
+
+    <div class="dashboard-card">
+        <h2>Today's Appointments</h2>
+        {% if appointments %}
+            <ul class="appointment-list">
+            {% for appointment in appointments %}
+            {% if appointment.status == 'SCHEDULED' %}
+                <li class="appointment-item">
+                    <span>
+                        {{ appointment.time|time:"H:i" }} - {{ appointment.patient.get_full_name }}
+                    </span>
+                    <a href="{% url 'appointment_detail' appointment.id %}" class="btn-details">Details</a>
+                </li>
             {% endif %}
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2024 SmartCare Surgery System</p>
-    </footer>
-</body>
-</html>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>No appointments for today.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-card">
+        <h2>Recent Prescriptions</h2>
+        {% if prescriptions %}
+            <ul class="list-group">
+            {% for prescription in prescriptions|slice:":5" %}
+                <li class="list-group-item">{{ prescription.medication }} for {{ prescription.patient.get_full_name }}</li>
+            {% endfor %}
+            </ul>
+            <a href="{% url 'view_prescriptions' %}" class="btn btn-secondary mt-3">View All Prescriptions</a>
+        {% else %}
+            <p>No recent prescriptions.</p>
+        {% endif %}
+    </div>
+    
+</div>
+{% endblock %}

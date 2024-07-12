@@ -1,106 +1,104 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import SharedPatientRecord, Message, TreatmentPlan, Referral
-from .forms import SharedPatientRecordForm, MessageForm, TreatmentPlanForm, ReferralForm
-from django.contrib import messages
-from .decorators import user_is_medical_staff
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import JsonResponse
 from django.core.mail import send_mail
-from django.conf import settings
-from .demo_data import DEMO_COLLABORATORS
-from django.contrib.auth import get_user_model
-from authentication.models import User, GPDetails
-from authentication.decorators import user_is_doctor, user_is_nurse, user_is_admin
 from django.template.loader import render_to_string
+from django.conf import settings
+from authentication.models import User, GPDetails
 from appointments.models import Prescription
-
-User = get_user_model()
+from .decorators import user_is_medical_staff
+from .models import SharedPatientRecord
+import json
 
 @login_required
-def share_patient_record(request, patient_id):
-    try:
-        patient = User.objects.get(id=patient_id, user_type='patient')
-    except User.DoesNotExist:
-        messages.error(request, f"Patient with ID {patient_id} does not exist.")
-        return redirect('view_appointments')
+@user_is_medical_staff
+def share_patient_record(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        patient_id = data.get('patient_id')
+        gp_id = data.get('gp_id')
+        message = data.get('message')
+
+        try:
+            patient = User.objects.get(id=patient_id)
+            gp = GPDetails.objects.get(id=gp_id)
+
+            SharedPatientRecord.objects.create(
+                patient=patient,
+                gp=gp,
+                shared_by=request.user,
+                message=message
+            )
+
+            patient_details = {
+                'name': patient.get_full_name(),
+                'email': patient.email,
+                'date_of_birth': str(patient.date_of_birth),
+                'address': patient.address,
+                'phone_number': patient.phone_number,
+                'patient_type': patient.get_patient_type_display(),
+            }
+
+            prescriptions = Prescription.objects.filter(patient=patient)
+            prescription_details = [
+                {
+                    'medication': p.medication,
+                    'dosage': p.dosage,
+                    'instructions': p.instructions,
+                    'date_prescribed': str(p.date_prescribed)
+                } for p in prescriptions
+            ]
+
+            email_content = render_to_string('collaboration/share_patient_record_email.html', {
+                'gp': gp,
+                'patient': patient,
+                'patient_details': patient_details,
+                'prescriptions': prescription_details,
+                'message': message
+            })
+
+            send_mail(
+                'Patient Details Shared',
+                email_content,
+                settings.DEFAULT_FROM_EMAIL,
+                [gp.email],
+                fail_silently=False,
+                html_message=email_content
+            )
+
+            return JsonResponse({'status': 'success'})
+        except (User.DoesNotExist, GPDetails.DoesNotExist) as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    search_query = request.GET.get('search', '')
+    page_number = request.GET.get('page', 1)
+    patients = User.objects.filter(user_type='patient')
+
+    if search_query:
+        patients = patients.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(date_of_birth__icontains=search_query)
+        )
+
+    paginator = Paginator(patients, 10)
+    page_obj = paginator.get_page(page_number)
 
     gps = GPDetails.objects.all()
 
-    if request.method == 'POST':
-        gp_id = request.POST.get('gp_id')
-        try:
-            gp = GPDetails.objects.get(id=gp_id)
-        except GPDetails.DoesNotExist:
-            messages.error(request, "Selected GP does not exist.")
-            return render(request, 'collaboration/share_patient_record.html', {'gps': gps, 'patient': patient})
+    context = {
+        'page_obj': page_obj,
+        'gps': gps,
+        'search_query': search_query,
+    }
 
-        prescriptions = Prescription.objects.filter(patient=patient)
-
-        subject = 'Patient Record Sharing'
-        message = render_to_string('collaboration/share_patient_record_email.html', {
-            'gp': gp,
-            'patient': patient,
-            'prescriptions': prescriptions,
-        })
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [gp.email])
-        messages.success(request, f'Patient record shared with {gp.name} ({gp.email}).')
-        return redirect('view_appointments')
-
-    return render(request, 'collaboration/share_patient_record.html', {
-        'gps': gps, 
-        'patient': patient
-    })
+    return render(request, 'collaboration/share_patient_record.html', context)
 
 @login_required
 @user_is_medical_staff
-def send_message(request, receiver_id):
-    if request.method == 'POST':
-        form = MessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.sender = request.user
-            message.receiver_id = receiver_id
-            message.save()
-            messages.success(request, 'Message sent successfully.')
-            return redirect('inbox')
-    else:
-        form = MessageForm()
-    return render(request, 'collaboration/send_message.html', {'form': form})
-
-@login_required
-@user_is_medical_staff
-def create_treatment_plan(request, patient_id):
-    if request.method == 'POST':
-        form = TreatmentPlanForm(request.POST)
-        if form.is_valid():
-            plan = form.save(commit=False)
-            plan.patient_id = patient_id
-            plan.created_by = request.user
-            plan.save()
-            form.save_m2m()
-            messages.success(request, 'Treatment plan created successfully.')
-            return redirect('patient_detail', patient_id=patient_id)
-    else:
-        form = TreatmentPlanForm()
-    return render(request, 'collaboration/create_treatment_plan.html', {'form': form})
-
-@login_required
-@user_is_medical_staff
-def create_referral(request, patient_id):
-    if request.method == 'POST':
-        form = ReferralForm(request.POST)
-        if form.is_valid():
-            referral = form.save(commit=False)
-            referral.patient_id = patient_id
-            referral.referring_practitioner = request.user
-            referral.save()
-            messages.success(request, 'Referral created successfully.')
-            return redirect('patient_detail', patient_id=patient_id)
-    else:
-        form = ReferralForm()
-    return render(request, 'collaboration/create_referral.html', {'form': form})
-
-@login_required
-@user_is_medical_staff
-def list_shared_records(request):
-    shared_records = SharedPatientRecord.objects.filter(shared_with__contains=request.user.email)
-    return render(request, 'collaboration/list_shared_records.html', {'shared_records': shared_records})
+def shared_records_list(request):
+    shared_records = SharedPatientRecord.objects.all().order_by('-shared_date')
+    return render(request, 'collaboration/shared_records_list.html', {'shared_records': shared_records})

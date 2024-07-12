@@ -1,14 +1,109 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .appointments-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .filter-form {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .appointment-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .appointment-item {
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: box-shadow 0.3s ease;
+    }
+    .appointment-item:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .appointment-details {
+        flex-grow: 1;
+    }
+    .appointment-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-custom {
+        padding: 5px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .btn-view {
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-view:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+    .btn-cancel {
+        background-color: #dc3545;
+        color: white;
+    }
+    .btn-cancel:hover {
+        background-color: #c82333;
+        color: white;
+    }
+    .action-buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2>Your Appointments</h2>
-{% if appointments %}
-    <ul>
-    {% for appointment in appointments %}
-        <li>{{ appointment.date }} at {{ appointment.time }} - Reason: {{ appointment.reason }}</li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No appointments scheduled.</p>
-{% endif %}
+<div class="appointments-container">
+    <h2 class="mb-4">Appointments</h2>
+
+    <form method="get" class="filter-form">
+        {{ filter_form.as_p }}
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+
+    {% if appointments %}
+        <ul class="appointment-list">
+        {% for appointment in appointments %}
+            <li class="appointment-item">
+                <div class="appointment-details">
+                    <strong>{{ appointment.date }} at {{ appointment.time }}</strong><br>
+                    Patient: {{ appointment.patient.get_full_name }}<br>
+                    Reason: {{ appointment.reason }}<br>
+                    Type: {{ appointment.get_appointment_type_display }}
+                </div>
+                <div class="appointment-actions">
+                    <a href="{% url 'appointment_detail' appointment.id %}" class="btn-custom btn-view">View </a>
+                    {% if appointment.status == 'SCHEDULED' %}
+                        <a href="{% url 'cancel_appointment' appointment.id %}" class="btn-custom btn-cancel"> Cancel</a>
+                    {% endif %}
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No appointments scheduled.</p>
+    {% endif %}
+
+    <div class="action-buttons">
+        <a href="{% url 'book_appointment' %}" class="btn btn-primary">Book New Appointment</a>
+        <a href="{% url 'view_cfc_appointments' %}" class="btn btn-secondary">View Overview</a>
+    </div>
+</div>
 {% endblock %}

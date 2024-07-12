@@ -6,6 +6,69 @@
     <title>Register</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        main {
+            padding: 2rem;
+            max-width: 600px;
+            margin: auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .text-danger {
+            color: #dc3545;
+            font-size: 14px;
+        }
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #333;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -14,12 +77,128 @@
     <main>
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username:</label>
+                {{ form.username }}
+                {% for error in form.username.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.first_name.id_for_label }}">First Name:</label>
+                {{ form.first_name }}
+                {% for error in form.first_name.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.last_name.id_for_label }}">Last Name:</label>
+                {{ form.last_name }}
+                {% for error in form.last_name.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">Email:</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth:</label>
+                {{ form.date_of_birth }}
+                {% for error in form.date_of_birth.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}">Password:</label>
+                {{ form.password1 }}
+                {% for error in form.password1.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
+                {{ form.password2 }}
+                {% for error in form.password2.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.user_type.id_for_label }}">User Type:</label>
+                {{ form.user_type }}
+                {% for error in form.user_type.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group specialty-group hidden">
+                <label for="{{ form.specialty.id_for_label }}">Specialty:</label>
+                {{ form.specialty }}
+                {% for error in form.specialty.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group patient-type-group hidden">
+                <label for="{{ form.patient_type.id_for_label }}">Patient Type:</label>
+                {{ form.patient_type }}
+                {% for error in form.patient_type.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.address.id_for_label }}">Address:</label>
+                {{ form.address }}
+                {% for error in form.address.errors %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {{ form.latitude }}
+            {{ form.longitude }}
             <button type="submit">Register</button>
         </form>
     </main>
     <footer>
         <p>&copy; 2024 SmartCare Surgery System</p>
     </footer>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
+            var specialtyGroup = document.querySelector('.specialty-group');
+            var patientTypeGroup = document.querySelector('.patient-type-group');
+            var addressInput = document.getElementById('{{ form.address.id_for_label }}');
+            var autocomplete = new google.maps.places.Autocomplete(addressInput);
+
+            function updateFields() {
+                var selectedType = userTypeSelect.value;
+                if (selectedType === 'doctor') {
+                    specialtyGroup.classList.remove('hidden');
+                    patientTypeGroup.classList.add('hidden');
+                } else if (selectedType === 'patient') {
+                    specialtyGroup.classList.add('hidden');
+                    patientTypeGroup.classList.remove('hidden');
+                } else {
+                    specialtyGroup.classList.add('hidden');
+                    patientTypeGroup.classList.add('hidden');
+                }
+            }
+
+            userTypeSelect.addEventListener('change', updateFields);
+
+            autocomplete.addListener('place_changed', function() {
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    console.log("No details available for input: '" + place.name + "'");
+                    return;
+                }
+                document.getElementById('id_latitude').value = place.geometry.location.lat();
+                document.getElementById('id_longitude').value = place.geometry.location.lng();
+            });
+
+            updateFields();
+        });
+    </script>
 </body>
 </html>

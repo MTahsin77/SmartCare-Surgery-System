@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h1>Your Appointments</h1>
+<h2>Your Appointments</h2>
 {% if appointments %}
     <ul>
     {% for appointment in appointments %}
-        <li>{{ appointment.date }} at {{ appointment.time }} with {{ appointment.doctor_or_nurse }} - Reason: {{ appointment.reason }}</li>
+        <li>
+            {{ appointment.date }} at {{ appointment.time }} - Reason: {{ appointment.reason }}
+            {% if appointment.status == 'SCHEDULED' %}
+                <a href="{% url 'cancel_appointment' appointment.id %}">Cancel</a>
+            {% endif %}
+        </li>
     {% endfor %}
     </ul>
 {% else %}
-    <p>You have no appointments scheduled.</p>
+    <p>No appointments scheduled.</p>
 {% endif %}
 {% endblock %}

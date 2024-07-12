@@ -1,17 +1,32 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, GPForm
-from .models import UserProfile, GPDetails, PendingRegistration
+from django.conf import settings
+from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, GPForm, CustomUserChangeForm
+from .models import UserProfile, GPDetails, PendingRegistration, User
 from .decorators import user_is_patient, user_is_doctor, user_is_nurse, user_is_admin
+
 
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
+        logger.debug(f"Form data: {request.POST}")  # Debug log
         if form.is_valid():
             user = form.save(commit=False)
             user_type = form.cleaned_data.get('user_type')
+            logger.debug(f"User type: {user_type}")  # Debug log
+            
+            if user_type == 'doctor':
+                user.specialty = form.cleaned_data.get('specialty')
+                logger.debug(f"Doctor specialty: {user.specialty}")  # Debug log
+            elif user_type == 'patient':
+                user.patient_type = form.cleaned_data.get('patient_type')
+                logger.debug(f"Patient type: {user.patient_type}")  # Debug log
             
             if user_type in ['doctor', 'nurse', 'admin']:
                 user.is_active = False
@@ -24,9 +39,59 @@ def register(request):
                 login(request, user)
                 messages.success(request, f'Account created for {user.username}. You are now logged in.')
                 return redirect('patient_dashboard')
+        else:
+            logger.debug(f"Form errors: {form.errors}")  # Debug log
     else:
         form = UserRegistrationForm()
+    
     return render(request, 'authentication/register.html', {'form': form})
+
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=request.user.userprofile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully.')
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=request.user.userprofile)
+    
+    context = {
+        'form': form,
+        'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
+    }
+    return render(request, 'authentication/profile.html', context)
+
+def user_login(request):
+    if request.method == 'POST':
+        form = UserLoginForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            UserProfile.objects.get_or_create(user=user)
+            messages.success(request, 'You have successfully logged in.')
+            return redirect_to_dashboard(user)
+    else:
+        form = UserLoginForm()
+    return render(request, 'authentication/login.html', {'form': form})
+
+@login_required
+def user_logout(request):
+    logout(request)
+    messages.success(request, 'You have been logged out.')
+    return redirect('login')
+
+
+def redirect_to_dashboard(user):
+    if user.is_admin():
+        return redirect('admin_dashboard')
+    elif user.is_doctor():
+        return redirect('doctor_dashboard')
+    elif user.is_nurse():
+        return redirect('nurse_dashboard')
+    else:
+        return redirect('patient_dashboard')
 
 @login_required
 @user_is_admin
@@ -45,43 +110,56 @@ def pending_registrations(request):
     pending = PendingRegistration.objects.all()
     return render(request, 'authentication/pending_registrations.html', {'pending': pending})
 
-
-def user_login(request):
-    if request.method == 'POST':
-        form = UserLoginForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, 'You have successfully logged in.')
-            if user.is_admin():
-                return redirect('admin_dashboard')
-            elif user.is_doctor():
-                return redirect('doctor_dashboard')
-            elif user.is_nurse():
-                return redirect('nurse_dashboard')
-            else:
-                return redirect('patient_dashboard')
-    else:
-        form = UserLoginForm()
-    return render(request, 'authentication/login.html', {'form': form})
-
 @login_required
-def profile(request):
+@user_is_admin
+def manage_users(request):
+    users = User.objects.all()
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=request.user.userprofile)
+        form = CustomUserChangeForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Your profile has been updated.')
-            return redirect('profile')
+            messages.success(request, 'User updated successfully.')
+            return redirect('manage_users')
     else:
-        form = UserProfileForm(instance=request.user.userprofile)
-    return render(request, 'authentication/profile.html', {'form': form})
+        form = CustomUserChangeForm()
+    return render(request, 'authentication/manage_users.html', {'users': users, 'form': form})
 
 @login_required
-def user_logout(request):
-    logout(request)
-    messages.success(request, 'You have been logged out.')
-    return redirect('login')
+@user_is_admin
+def manage_gp(request, gp_id=None):
+    if gp_id:
+        gp = get_object_or_404(GPDetails, id=gp_id)
+    else:
+        gp = None
+
+    if request.method == 'POST':
+        form = GPForm(request.POST, instance=gp)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'GP details saved successfully.')
+            return redirect('gp_list')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = GPForm(instance=gp)
+
+    return render(request, 'authentication/manage_gp.html', {'form': form, 'gp': gp})
+
+@login_required
+@user_is_admin
+def delete_gp(request, gp_id):
+    gp = get_object_or_404(GPDetails, id=gp_id)
+    if request.method == 'POST':
+        gp.delete()
+        messages.success(request, 'GP deleted successfully.')
+        return redirect('gp_list')
+    return render(request, 'authentication/delete_gp.html', {'gp': gp})
+
+@login_required
+@user_is_admin
+def gp_list(request):
+    gps = GPDetails.objects.all()
+    return render(request, 'authentication/gp_list.html', {'gps': gps})
 
 def unauthorized_access(request):
     return render(request, 'authentication/unauthorized_access.html')
@@ -105,39 +183,3 @@ def nurse_dashboard(request):
 @user_is_admin
 def admin_dashboard(request):
     return render(request, 'dashboards/admin_dashboard.html')
-
-@login_required
-@user_is_admin
-def manage_gp(request, gp_id=None):
-    if gp_id:
-        gp = get_object_or_404(GPDetails, id=gp_id)
-    else:
-        gp = None
-
-    if request.method == 'POST':
-        form = GPForm(request.POST, instance=gp)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'GP details saved successfully.')
-            return redirect('gp_list')
-        else:
-            messages.error(request, 'Please correct the error below.')
-    else:
-        form = GPForm(instance=gp)
-
-    return render(request, 'authentication/manage_gp.html', {'form': form, 'gp': gp})
-    
-@login_required
-def delete_gp(request, gp_id):
-    gp = get_object_or_404(GPDetails, id=gp_id)
-    if request.method == 'POST':
-        gp.delete()
-        messages.success(request, 'GP deleted successfully.')
-        return redirect('gp_list')
-    return render(request, 'authentication/delete_gp.html', {'gp': gp})
-
-@login_required
-@user_is_admin
-def gp_list(request):
-    gps = GPDetails.objects.all()
-    return render(request, 'authentication/gp_list.html', {'gps': gps})

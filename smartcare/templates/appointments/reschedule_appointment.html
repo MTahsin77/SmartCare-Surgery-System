@@ -1,9 +1,198 @@
 {% extends 'base.html' %}
+{% block title %}Reschedule Appointment{% endblock %}
 {% block content %}
-<h2>Reschedule Appointment</h2>
-<form method="post">
+<h2>Reschedule/Forward Appointment</h2>
+<form method="post" id="appointment-form" class="appointment-form">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Reschedule</button>
+    {{ form.non_field_errors }}
+    
+    <div class="form-group">
+        <label for="{{ form.date.id_for_label }}">Date:</label>
+        {{ form.date }}
+        {{ form.date.errors }}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.time.id_for_label }}">Time:</label>
+        {{ form.time }}
+        {{ form.time.errors }}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.reason.id_for_label }}">Reason:</label>
+        {{ form.reason }}
+        {{ form.reason.errors }}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.doctor_or_nurse.id_for_label }}">Select Type:</label>
+        {{ form.doctor_or_nurse }}
+        {{ form.doctor_or_nurse.errors }}
+    </div>
+    
+    <div class="form-group" id="specialty-group" style="display: none;">
+        <label for="{{ form.specialty.id_for_label }}">Specialty:</label>
+        {{ form.specialty }}
+        {{ form.specialty.errors }}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.staff.id_for_label }}">Select Staff:</label>
+        {{ form.staff }}
+        {{ form.staff.errors }}
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.appointment_type.id_for_label }}">Appointment Type:</label>
+        {{ form.appointment_type }}
+        {{ form.appointment_type.errors }}
+    </div>
+    
+    <button type="submit" class="btn-primary custom-button">Reschedule/Forward Appointment</button>
+    <a href="{% url 'view_appointments' %}" class="btn btn-secondary">Back to Appointments</a>
 </form>
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .appointment-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .appointment-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #4CAF50;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="date"]:focus,
+    .form-group input[type="time"]:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #4CAF50;
+        outline: none;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+
+    .btn-secondary {
+        display: block;
+        width: 100%;
+        padding: 10px 20px;
+        background-color: #f4f4f9;
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .btn-secondary:hover {
+        background-color: #e8e8e8;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var doctorOrNurseSelect = document.getElementById('{{ form.doctor_or_nurse.id_for_label }}');
+        var specialtyGroup = document.getElementById('specialty-group');
+        var specialtySelect = document.getElementById('{{ form.specialty.id_for_label }}');
+        var staffSelect = document.getElementById('{{ form.staff.id_for_label }}');
+
+        function updateFields() {
+            var doctorOrNurse = doctorOrNurseSelect.value;
+            var specialty = doctorOrNurse === 'doctor' ? specialtySelect.value : '';
+
+            if (doctorOrNurse === 'doctor') {
+                specialtyGroup.style.display = 'block';
+            } else {
+                specialtyGroup.style.display = 'none';
+                specialtySelect.value = '';
+            }
+
+            fetch(`{% url 'load_staff' %}?doctor_or_nurse=${doctorOrNurse}&specialty=${specialty}`)
+                .then(response => response.json())
+                .then(data => {
+                    staffSelect.innerHTML = '<option value="">Select Staff</option>';
+                    data.forEach(function(item) {
+                        var option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        staffSelect.appendChild(option);
+                    });
+                });
+        }
+
+        doctorOrNurseSelect.addEventListener('change', updateFields);
+        specialtySelect.addEventListener('change', updateFields);
+
+        // Initial call to set up the form correctly
+        updateFields();
+
+        // Initialize the date picker
+        flatpickr('#{{ form.date.id_for_label }}', {
+            dateFormat: 'Y-m-d',
+            minDate: 'today'
+        });
+
+        // Initialize the time picker
+        flatpickr('#{{ form.time.id_for_label }}', {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            minuteIncrement: 10
+        });
+    });
+</script>
 {% endblock %}

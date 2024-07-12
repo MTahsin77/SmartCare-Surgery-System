@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    .fee-list {
+        margin-top: 20px;
+    }
+    .fee-item {
+        background-color: #f8f9fa;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Invoice Details</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Invoice ID:</strong> {{ invoice.id }}</p>
+                <p><strong>Patient:</strong> {{ invoice.patient.get_full_name }}</p>
+                <p><strong>Patient Type:</strong> {{ invoice.get_patient_type_display }}</p>
+                <p><strong>Appointment Date:</strong> {{ invoice.appointment.date }}</p>
+                <p><strong>Issued By:</strong> {{ issued_by }}</p>
+                <p><strong>Doctor/Nurse:</strong> {{ staff_name }}</p>
+                <p><strong>Appointment Type:</strong> {{ appointment_type }}</p>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.consultation_length.id_for_label }}">Consultation Length (minutes):</label>
+                    {{ form.consultation_length }}
+                </div>
+                {% if user.is_admin %}
+                    <div class="form-group">
+                        <label for="{{ form.rate.id_for_label }}">Rate (per 10 minutes):</label>
+                        {{ form.rate }}
+                    </div>
+                {% else %}
+                    <p><strong>Rate (per 10 minutes):</strong> £{{ invoice.rate }}</p>
+                {% endif %}
+                <div class="form-group">
+                    <label for="{{ form.patient_type.id_for_label }}">Patient Type:</label>
+                    {{ form.patient_type }}
+                </div>
+                {% if user.is_doctor or user.is_nurse or user.is_admin %}
+                <div class="form-group">
+                    <label for="{{ form.payment_status.id_for_label }}">Payment Status:</label>
+                    {{ form.payment_status }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <h4>Applied Fees</h4>
+        <div class="fee-list">
+            {% for fee in applied_fees %}
+                <div class="fee-item">
+                    <p><strong>{{ fee.title }}:</strong> £{{ fee.amount }}</p>
+                </div>
+            {% empty %}
+                <p>No fees applied to this invoice.</p>
+            {% endfor %}
+        </div>
+        
+        <p><strong>Total Amount:</strong> £{{ invoice.total_amount }}</p>
+        <p><strong>Date Issued:</strong> {{ invoice.date_issued }}</p>
+        {% if invoice.date_paid %}
+            <p><strong>Date Paid:</strong> {{ invoice.date_paid }}</p>
+        {% endif %}
+        
+        {% if can_edit %}
+            <button type="submit" class="btn btn-primary">Update Invoice</button>
+        {% endif %}
+    </form>
+    {% if user.is_doctor or user.is_nurse or user.is_admin %}
+    <a href="{% url 'list_invoices' %}" class="btn btn-secondary mt-3">Back to Invoices</a>
+    {% endif %}
+    {% if user.is_patient %}
+    <a href="{% url 'patient_invoices' %}" class="btn btn-secondary mt-3">Back to Invoices</a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

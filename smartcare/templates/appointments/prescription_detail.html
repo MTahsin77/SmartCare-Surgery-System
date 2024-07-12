@@ -1,11 +1,47 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Prescription Details</h2>
-<p><strong>Medication:</strong> {{ prescription.medication }}</p>
-<p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
-<p><strong>Instructions:</strong> {{ prescription.instructions }}</p>
-<p><strong>Prescribed by:</strong> Dr. {{ prescription.doctor.get_full_name }}</p>
-<p><strong>Date Prescribed:</strong> {{ prescription.date_prescribed|date:"F d, Y" }}</p>
-<p><strong>Repeatable:</strong> {% if prescription.is_repeatable %}Yes{% else %}No{% endif %}</p>
+<div class="container mt-5">
+    <h2>Prescription Details</h2>
+    <div class="card mt-3">
+        <div class="card-body">
+            <p><strong>Medication:</strong> {{ prescription.medication }}</p>
+            <p><strong>Dosage:</strong> {{ prescription.dosage }}</p>
+            <p><strong>Instructions:</strong> {{ prescription.instructions }}</p>
+            <p><strong>Prescribed by:</strong> Dr. {{ prescription.doctor.get_full_name }}</p>
+            <p><strong>Date Prescribed:</strong> {{ prescription.date_prescribed|date:"F d, Y" }}</p>
+            <p><strong>Repeatable:</strong> {% if prescription.is_repeatable %}Yes{% else %}No{% endif %}</p>
+            <form method="post" action="{% url 'request_prescription' prescription.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Request Repeat</button>
+            </form>
+            {% if user.is_patient %}
+                <a href="{% url 'patient_dashboard' %}" class="btn btn-secondary mt-4">Back to Dashboard</a>
+            {% elif user.is_doctor %}
+                <a href="{% url 'doctor_dashboard' %}" class="btn btn-secondary mt-4">Back to Dashboard</a>
+            {% elif user.is_nurse %}
+                <a href="{% url 'nurse_dashboard' %}" class="btn btn-secondary mt-4">Back to Dashboard</a>
+            {% elif user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary mt-4">Back to Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+    .container {
+        max-width: 600px;
+    }
+    .card {
+        margin-top: 20px;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .btn {
+        margin-top: 10px;
+    }
+</style>
 {% endblock %}

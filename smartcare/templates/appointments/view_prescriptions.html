@@ -1,18 +1,62 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Your Prescriptions</h2>
-{% if prescriptions %}
-    <ul>
-    {% for prescription in prescriptions %}
-        <li>
-            <a href="{% url 'prescription_detail' prescription.id %}">
-                {{ prescription.medication }} - Prescribed on {{ prescription.date_prescribed|date:"F d, Y" }}
-            </a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>You have no prescriptions.</p>
-{% endif %}
+<div class="container mt-5">
+    {% if user.is_doctor or user.is_nurse %}
+        <h3>Prescription Requests</h3>
+        {% if prescription_requests %}
+            <ul class="list-group">
+                {% for request in prescription_requests %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ request.prescription.medication }} - Requested by {{ request.patient.get_full_name }}
+                        <form method="post" action="{% url 'view_prescriptions' %}" class="d-flex align-items-center mb-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="request_id" value="{{ request.id }}">
+                            <select name="status" class="form-select form-select-sm me-2">
+                                <option value="APPROVED">Approve</option>
+                                <option value="REJECTED">Reject</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Update Status</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No pending prescription requests.</p>
+        {% endif %}
+    {% endif %}
+
+    <h3>Your Prescriptions</h3>
+    {% if prescriptions %}
+        <ul class="list-group mb-4">
+            {% for prescription in prescriptions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'prescription_detail' prescription.id %}">{{ prescription.medication }}</a> - Prescribed on {{ prescription.date_prescribed|date:"F d, Y" }}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no prescriptions.</p>
+    {% endif %}
+    
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+    .container {
+        max-width: 800px;
+    }
+    .list-group-item {
+        padding: 1rem;
+    }
+    .form-select-sm {
+        width: auto;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+</style>
 {% endblock %}

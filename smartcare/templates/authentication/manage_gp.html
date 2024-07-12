@@ -3,13 +3,99 @@
 {% block title %}{% if gp %}Edit GP{% else %}Add New GP{% endif %}{% endblock %}
 
 {% block content %}
-<h1>{% if gp %}Edit GP{% else %}Add New GP{% endif %}</h1>
-<form method="post" id="gp-form">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Save GP Details</button>
-</form>
-<a href="{% url 'gp_list' %}" class="btn btn-secondary mt-3">Back to GP List</a>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">{% if gp %}Edit GP{% else %}Add New GP{% endif %}</h1>
+    <form method="post" id="gp-form" class="bg-light p-4 rounded shadow-sm">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Save GP Details</button>
+    </form>
+    <div class="text-center mt-3">
+        <a href="{% url 'gp_list' %}" class="btn btn-success">Back to GP List</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: #28a745;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border: none;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+
+    .mt-5 {
+        margin-top: 3rem !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+
+    .p-4 {
+        padding: 1.5rem !important;
+    }
+
+    .rounded {
+        border-radius: 0.25rem !important;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+</style>
 {% endblock %}
 
 {% block extra_scripts %}

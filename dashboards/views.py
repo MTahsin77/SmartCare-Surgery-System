@@ -75,14 +75,18 @@ def admin_dashboard(request):
 @login_required
 @user_is_admin
 def manage_users(request):
+    user_type_filter = request.GET.get('user_type')
+    user_role_filter = request.GET.get('user_role')
+
+    users = User.objects.all()
+
+    if user_type_filter:
+        users = users.filter(patient_type=user_type_filter)
+    if user_role_filter:
+        users = users.filter(user_type=user_role_filter)
+
     if request.method == 'POST':
-        if 'create_user' in request.POST:
-            form = CustomUserCreationForm(request.POST)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'User has been created successfully.')
-                return redirect('manage_users')
-        elif 'edit_user' in request.POST:
+        if 'edit_user' in request.POST:
             user_id = request.POST.get('user_id')
             user = get_object_or_404(User, id=user_id)
             form = CustomUserChangeForm(request.POST, instance=user)
@@ -97,10 +101,15 @@ def manage_users(request):
             messages.success(request, 'User has been deleted successfully.')
             return redirect('manage_users')
     else:
-        form = CustomUserCreationForm()
+        form = CustomUserChangeForm()
 
-    users = User.objects.all()
-    return render(request, 'dashboards/manage_users.html', {'users': users, 'form': form})
+    context = {
+        'users': users,
+        'form': form,
+        'user_type_filter': user_type_filter,
+        'user_role_filter': user_role_filter,
+    }
+    return render(request, 'dashboards/manage_users.html', context)
 
 @login_required
 @user_is_admin

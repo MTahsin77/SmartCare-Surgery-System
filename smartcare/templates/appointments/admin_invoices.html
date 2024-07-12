@@ -1,32 +1,198 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<h2>Invoice Summary</h2>
-<p><strong>Total Turnover:</strong> ${{ total_turnover }}</p>
-<p><strong>NHS Charges:</strong> ${{ nhs_charges }}</p>
-<p><strong>Private Payments:</strong> ${{ private_payments }}</p>
+{% block extra_head %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-<h3>All Invoices</h3>
-<table>
-    <thead>
-        <tr>
-            <th>Invoice ID</th>
-            <th>Patient</th>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for invoice in invoices %}
-        <tr>
-            <td>{{ invoice.id }}</td>
-            <td>{{ invoice.patient.get_full_name }}</td>
-            <td>{{ invoice.get_patient_type_display }}</td>
-            <td>${{ invoice.total_amount }}</td>
-            <td>{{ invoice.get_payment_status_display }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+    h2, h3 {
+        color: #4CAF50;
+        text-align: center;
+        margin-bottom: 20px;
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        font-family: 'Arial', sans-serif;
+    }
+
+    table.table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-family: 'Arial', sans-serif;
+    }
+
+    table.table th, table.table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+    }
+
+    table.table th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+        font-family: 'Arial', sans-serif;
+    }
+
+    table.table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        border: none;
+        padding: 10px 15px;
+        color: white;
+        cursor: pointer;
+        border-radius: 4px;
+        text-decoration: none;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+
+    .btn-danger {
+        background-color: #f44336;
+        border: none;
+        padding: 5px 10px;
+        color: white;
+        cursor: pointer;
+        border-radius: 4px;
+        text-decoration: none;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #e53935;
+    }
+
+    form {
+        margin-bottom: 30px;
+    }
+
+    form .btn-primary {
+        margin-top: 10px;
+    }
+
+    table.table thead {
+        border-bottom: 2px solid #ddd;
+    }
+
+    table.table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Invoice Summary</h2>
+    <p><strong>Total Turnover:</strong> £{{ total_turnover }}</p>
+    <p><strong>NHS Charges:</strong> £{{ nhs_charges }}</p>
+    <p><strong>Private Payments:</strong> £{{ private_payments }}</p>
+
+    <h3>Manage Fees</h3>
+    <form method="post" action="{% url 'admin_invoices' %}">
+        {% csrf_token %}
+        {{ fee_form.as_p }}
+        <button type="submit" name="fee_form" class="btn btn-primary">Add Fee</button>
+    </form>
+
+    <h3>Current Fees</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Patient Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for fee in fees %}
+            <tr>
+                <td>{{ fee.title }}</td>
+                <td>£{{ fee.amount }}</td>
+                <td>{{ fee.get_patient_type_display }}</td>
+                <td>
+                    <form method="post" action="{% url 'delete_fee' fee.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <h3>Manage Rates</h3>
+    <form method="post" action="{% url 'admin_invoices' %}">
+        {% csrf_token %}
+        {{ rate_form.as_p }}
+        <button type="submit" name="rate_form" class="btn btn-primary">Update Rate</button>
+    </form>
+
+    <h3>Current Rates</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Rate Type</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for rate in rates %}
+            <tr>
+                <td>{{ rate.get_rate_type_display }}</td>
+                <td>£{{ rate.amount }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <h3>All Invoices</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Invoice ID</th>
+                <th>Patient</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.id }}</td>
+                <td>{{ invoice.patient.get_full_name }}</td>
+                <td>{{ invoice.get_patient_type_display }}</td>
+                <td>£{{ invoice.total_amount }}</td>
+                <td>{{ invoice.get_payment_status_display }}</td>
+                <td>
+                    <a href="{% url 'view_edit_invoice' invoice.id %}" class="btn btn-sm btn-primary">View/Edit</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

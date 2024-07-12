@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .shared-records-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .shared-records-table th, 
+    .shared-records-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .shared-records-table th {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .shared-records-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+</style>
+
+<div class="container">
+    <h2>Shared Patient Records</h2>
+    <table class="shared-records-table">
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Shared With (GP)</th>
+                <th>Shared By</th>
+                <th>Shared Date</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in shared_records %}
+            <tr>
+                <td>{{ record.patient.get_full_name }}</td>
+                <td>{{ record.gp.name }}</td>
+                <td>{{ record.shared_by.get_full_name }}</td>
+                <td>{{ record.shared_date }}</td>
+                <td>{{ record.message|truncatewords:10 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

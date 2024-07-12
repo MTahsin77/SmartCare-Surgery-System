@@ -1,45 +1,112 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .dashboard-card h2 {
+        color: #4CAF50;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .appointment-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .appointment-item {
+        background-color: #f1f8e9;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-details {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .btn-details:hover {
+        background-color: #45a049;
+    }
+    .collaboration-link {
+        display: block;
+        padding: 10px;
+        background-color: #e8f5e9;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        color: #4CAF50;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .collaboration-link:hover {
+        background-color: #c8e6c9;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Doctor Dashboard</h1>
+<div class="dashboard-container">
+    <h1 class="text-center mb-4">Welcome, Dr. {{ user.get_full_name }}</h1>
 
-<section>
-    <h2>Your Upcoming Appointments</h2>
-    {% if appointments %}
-        <ul>
-        {% for appointment in appointments %}
-            <li>
-                {{ appointment.date|date:"F d, Y" }} at {{ appointment.time|time:"H:i" }} 
-                with {{ appointment.patient.get_full_name }}
-                <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-sm btn-info">Details</a>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>You have no upcoming appointments.</p>
-    {% endif %}
-</section>
+    <div class="dashboard-card">
+        <h2>Your Upcoming Appointments</h2>
+        {% if appointments %}
+            <ul class="appointment-list">
+            {% for appointment in appointments %}
+            {% if appointment.status == 'SCHEDULED' %}
+                <li class="appointment-item">
+                    <span>
+                        {{ appointment.date|date:"F d, Y" }} at {{ appointment.time|time:"H:i" }}
+                        with {{ appointment.patient.get_full_name }}
+                    </span>
+                    <a href="{% url 'appointment_detail' appointment.id %}" class="btn-details">Details</a>
+                </li>
+            {% endif %}
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no upcoming appointments.</p>
+        {% endif %}
+    </div>
 
-<section>
-    <h2>Recent Prescriptions</h2>
-    {% if prescriptions %}
-        <ul>
-        {% for prescription in prescriptions|slice:":5" %}
-            <li>{{ prescription.medication }} for {{ prescription.patient.get_full_name }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No recent prescriptions.</p>
-    {% endif %}
-</section>
+    <div class="dashboard-card">
+        <h2>Recent Prescriptions</h2>
+        {% if prescriptions %}
+            <ul class="list-group">
+            {% for prescription in prescriptions|slice:":5" %}
+                <li class="list-group-item">{{ prescription.medication }} for {{ prescription.patient.get_full_name }}</li>
+            {% endfor %}
+            </ul>
+            <a href="{% url 'view_prescriptions' %}" class="btn btn-secondary mt-3">View All Prescriptions</a>
+        {% else %}
+            <p>No recent prescriptions.</p>
+        {% endif %}
+    </div>
 
-<section>
-    <h2>Collaboration Tools</h2>
+    <div class="dashboard-card">
+        <h2>Collaboration Tools</h2>
     <ul>
-        <li><a href="{% url 'share_patient_record' patient_id=0 %}">Share Patient Record</a></li>
-        <li><a href="{% url 'send_message' receiver_id=0 %}">Send Message</a></li>
-        <li><a href="{% url 'create_treatment_plan' patient_id=0 %}">Create Treatment Plan</a></li>
-        <li><a href="{% url 'create_referral' patient_id=0 %}">Create Referral</a></li>
+       <li><a href="{% url 'share_patient_record' %}" class="collaboration-link">Share Patient Record</a></li> 
+       <li><a href="{% url 'shared_records_list' %}" class="collaboration-link">View Shared Records</a></li>
     </ul>
-</section>
+    </div>
+</div>
 {% endblock %}

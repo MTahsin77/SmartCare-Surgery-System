@@ -1,34 +1,157 @@
 {% extends 'base.html' %}
 
+{% block title %}Appointment Details{% endblock %}
+
 {% block content %}
-<h2>Appointment Details</h2>
-<p>Patient: {{ appointment.patient.get_full_name }}</p>
-<p>Doctor: {{ appointment.doctor.get_full_name|default:"Not assigned" }}</p>
-<p>Nurse: {{ appointment.nurse.get_full_name|default:"Not assigned" }}</p>
-<p>Date: {{ appointment.date }}</p>
-<p>Time: {{ appointment.time }}</p>
-<p>Reason: {{ appointment.reason }}</p>
+<div class="container mt-5">
+    <h2>Appointment Details</h2>
+    <p><strong>Patient:</strong> {{ patient.get_full_name }}</p>
+    {% if doctor %}
+        <p><strong>Doctor:</strong> {{ doctor.get_full_name }}</p>
+        <p><strong>Specialty:</strong> {{ doctor.get_specialty_display }}</p>
+    {% elif nurse %}
+        <p><strong>Nurse:</strong> {{ nurse.get_full_name }}</p>
+    {% else %}
+        <p><strong>Staff:</strong> Not assigned</p>
+    {% endif %}
+    <p><strong>Date:</strong> {{ appointment.date }}</p>
+    <p><strong>Time:</strong> {{ appointment.time }}</p>
+    <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+    <p><strong>Status:</strong> {{ appointment.get_status_display }} (Raw: {{ raw_status }})</p>
+    
+    <h3>Prescriptions</h3>
+    {% if prescriptions %}
+        <ul class="list-group text-center">
+        {% for prescription in prescriptions %}
+            <li class="list-group-item">{{ prescription.medication }} - {{ prescription.dosage }} - {{ prescription.instructions }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-center">No prescriptions issued yet.</p>
+    {% endif %}
 
-{% if user.is_doctor or user.is_nurse or user.is_admin %}
-    <a href="{% url 'share_patient_record' appointment.id %}" class="btn btn-primary">Forward Patient</a>
-{% endif %}
+    {% if user.is_doctor or user.is_nurse %}
+        <div class="text-center mt-3">
+            <a href="{% url 'issue_prescription' appointment.id %}" class="btn btn-secondary">Issue New Prescription</a>
+        </div>
+    {% endif %}
 
-<h3>Prescriptions</h3>
-{% if prescriptions %}
-    <ul>
-    {% for prescription in prescriptions %}
-        <li>{{ prescription.medication }} - {{ prescription.dosage }} - {{ prescription.instructions }}</li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No prescriptions issued yet.</p>
-{% endif %}
+    {% if appointment.status == 'SCHEDULED' %}
+    <div class="text-center mt-4">
+        {% if user.is_doctor or user.is_nurse or user.is_admin %}
+            <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success">Complete Appointment</a>
+        {% endif %}
 
-{% if user.is_doctor %}
-    <a href="{% url 'issue_prescription' appointment.id %}" class="btn btn-secondary">Issue New Prescription</a>
-{% endif %}
+        {% if user.is_patient or user.is_doctor or user.is_nurse or user.is_admin %}
+            <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-danger">Cancel Appointment</a>
+        {% endif %}
+        <br>
+        <br>
+        {% if user.is_patient or user.is_doctor or user.is_nurse or user.is_admin %}
+            <a href="{% url 'reschedule_appointment' appointment.id %}" class="btn btn-warning">Reschedule/Forward Appointment</a>
+        {% endif %}
+    </div>
+    {% else %}
+        <p class="text-center mt-4">This appointment is {{ appointment.get_status_display }}.</p>
+    {% endif %}
 
-{% if user.is_doctor %}
-    <a href="{% url 'generate_invoice' appointment.id %}" class="btn btn-secondary">Create Invoice</a>
-{% endif %}
+    <div class="text-center mt-3">
+        <a href="{% url 'view_appointments' %}" class="btn btn-secondary">Back to Appointments</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .list-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .list-group-item {
+        width: 80%;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn {
+        margin-right: 10px;
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        border: none;
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800;
+    }
+
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem !important;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+</style>
 {% endblock %}
