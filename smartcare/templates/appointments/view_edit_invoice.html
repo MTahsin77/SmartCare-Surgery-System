@@ -54,10 +54,6 @@
                 {% else %}
                     <p><strong>Rate (per 10 minutes):</strong> £{{ invoice.rate }}</p>
                 {% endif %}
-                <div class="form-group">
-                    <label for="{{ form.patient_type.id_for_label }}">Patient Type:</label>
-                    {{ form.patient_type }}
-                </div>
                 {% if user.is_doctor or user.is_nurse or user.is_admin %}
                 <div class="form-group">
                     <label for="{{ form.payment_status.id_for_label }}">Payment Status:</label>
@@ -66,7 +62,6 @@
                 {% endif %}
             </div>
         </div>
-        
         <h4>Applied Fees</h4>
         <div class="fee-list">
             {% for fee in applied_fees %}

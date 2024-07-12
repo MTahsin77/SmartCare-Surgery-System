@@ -92,6 +92,9 @@ class Fee(models.Model):
     def __str__(self):
         return f"{self.title} - £{self.amount} ({self.get_patient_type_display()})"
 
+    class Meta:
+        verbose_name_plural = "Fees"
+
 class DefaultRate(models.Model):
     RATE_TYPES = [
         ('NHS_PATIENT', 'NHS Patient'),
@@ -130,7 +133,7 @@ class Invoice(models.Model):
     ]
 
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invoices')
-    appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, unique=True)
+    appointment = models.OneToOneField('Appointment', on_delete=models.CASCADE, unique=True)
     patient_type = models.CharField(max_length=7, choices=PATIENT_TYPE_CHOICES)
     consultation_length = models.PositiveIntegerField(help_text="Length of consultation in minutes")
     rate = models.DecimalField(max_digits=6, decimal_places=2, help_text="Rate per 10 minutes")
@@ -138,23 +141,23 @@ class Invoice(models.Model):
     payment_status = models.CharField(max_length=15, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
     date_issued = models.DateTimeField(default=timezone.now)
     date_paid = models.DateTimeField(null=True, blank=True)
-    fees = models.ManyToManyField(Fee, related_name='invoices')
+    fees = models.ManyToManyField('Fee', related_name='invoices')
 
     def calculate_total(self):
-        base_amount = Decimal(self.consultation_length) * (self.rate / Decimal('10'))
-        if self.id:  # Only include fees if the invoice has been saved
-            fee_amount = sum(fee.amount for fee in self.fees.all())
-        else:
-            fee_amount = Decimal('0.00')
+        base_amount = Decimal(self.consultation_length) / Decimal('10') * self.rate
+        fee_amount = sum(fee.amount for fee in self.fees.all())
         return base_amount + fee_amount
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.pk:  # If this is a new invoice
+            super().save(*args, **kwargs)  # Save first to create the pk
             self.total_amount = self.calculate_total()
-        super().save(*args, **kwargs)
+            self.save(update_fields=['total_amount'])  # Save again to update the total_amount
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Invoice {self.id} for {self.patient.username} - {self.get_patient_type_display()}"
+        return f"Invoice {self.id} for {self.patient.username} - {self.get_patient_type_display()} - Total: £{self.total_amount}"
 
 
 class CompletedForwardedCanceled(models.Model):

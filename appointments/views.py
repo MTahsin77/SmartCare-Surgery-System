@@ -277,33 +277,45 @@ def request_prescription(request, prescription_id):
 from datetime import datetime
 
 @login_required
+@transaction.atomic
 def generate_invoice(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
     if request.method == 'POST':
         patient_type = appointment.patient.patient_type if hasattr(appointment.patient, 'patient_type') else 'NHS'
         
-        invoice = Invoice(
+        consultation_length = (appointment.end_time.hour * 60 + appointment.end_time.minute) - (appointment.time.hour * 60 + appointment.time.minute)
+        
+        if appointment.doctor:
+            rate = get_default_doctor_rate()
+        elif appointment.nurse:
+            rate = get_default_nurse_rate()
+        else:
+            rate = get_default_rate_for_patient_type(patient_type)
+        
+        base_amount = Decimal(consultation_length) / Decimal('10') * rate
+        
+        applicable_fees = Fee.objects.filter(patient_type__in=['ALL', patient_type])
+        fee_amount = sum(fee.amount for fee in applicable_fees)
+        
+        total_amount = base_amount + fee_amount
+        
+        invoice = Invoice.objects.create(
             patient=appointment.patient,
             appointment=appointment,
             patient_type=patient_type,
-            consultation_length=(appointment.end_time.hour * 60 + appointment.end_time.minute) - (appointment.time.hour * 60 + appointment.time.minute)
+            consultation_length=consultation_length,
+            rate=rate,
+            total_amount=total_amount  # Set initial total amount
         )
         
-        if appointment.doctor:
-            invoice.rate = get_default_doctor_rate()
-        elif appointment.nurse:
-            invoice.rate = get_default_nurse_rate()
-        else:
-            invoice.rate = get_default_rate_for_patient_type(patient_type)
-        
-        invoice.save()
-
-        applicable_fees = Fee.objects.filter(patient_type__in=['ALL', patient_type])
         invoice.fees.set(applicable_fees)
         
+        # Recalculate and update total amount after fees are set
         invoice.total_amount = invoice.calculate_total()
-        invoice.save()
+        invoice.save(update_fields=['total_amount'])
+        
+        print(f"Invoice generated: ID={invoice.id}, Base amount={base_amount}, Fee amount={fee_amount}, Total amount={invoice.total_amount}")
         
         appointment.update_status('COMPLETED')
         
@@ -329,6 +341,7 @@ def generate_invoice(request, appointment_id):
 def view_edit_invoice(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     
+    # Permission checks
     if request.user.is_patient():
         if invoice.patient != request.user:
             raise PermissionDenied
@@ -353,7 +366,8 @@ def view_edit_invoice(request, invoice_id):
             updated_invoice = form.save(commit=False)
             if updated_invoice.payment_status == 'PAID' and invoice.payment_status != 'PAID':
                 updated_invoice.date_paid = timezone.now()
-
+            
+            # Recalculate total amount
             updated_invoice.total_amount = updated_invoice.calculate_total()
             
             updated_invoice.save()
@@ -365,6 +379,9 @@ def view_edit_invoice(request, invoice_id):
         else:
             form = InvoiceStatusForm(instance=invoice)
     
+    applied_fees = invoice.fees.all()
+    print(f"Applied fees for invoice {invoice.id}: {list(applied_fees)}")  # Debug print
+    
     context = {
         'invoice': invoice,
         'form': form,
@@ -372,8 +389,18 @@ def view_edit_invoice(request, invoice_id):
         'issued_by': invoice.appointment.doctor.get_full_name() if invoice.appointment.doctor else invoice.appointment.nurse.get_full_name(),
         'staff_name': invoice.appointment.doctor.get_full_name() if invoice.appointment.doctor else invoice.appointment.nurse.get_full_name(),
         'appointment_type': invoice.appointment.get_appointment_type_display(),
+        'applied_fees': applied_fees,
     }
     return render(request, 'appointments/view_edit_invoice.html', context)
+
+from django.http import HttpResponse
+
+def debug_fees(request):
+    fees = Fee.objects.all()
+    response = "Existing Fees:\n"
+    for fee in fees:
+        response += f"- {fee.title}: £{fee.amount} ({fee.get_patient_type_display()})\n"
+    return HttpResponse(response, content_type="text/plain")
 
 @login_required
 def list_invoices(request):
@@ -405,9 +432,13 @@ def admin_invoices(request):
         if 'fee_form' in request.POST:
             fee_form = FeeForm(request.POST)
             if fee_form.is_valid():
-                fee_form.save()
+                fee = fee_form.save()
+                print(f"Fee created: {fee}")  # Debug print
                 messages.success(request, 'Fee added successfully.')
                 return redirect('admin_invoices')
+            else:
+                print(f"Fee form errors: {fee_form.errors}")
+
         elif 'rate_form' in request.POST:
             rate_form = RateForm(request.POST)
             if rate_form.is_valid():

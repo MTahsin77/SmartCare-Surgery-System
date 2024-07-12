@@ -3,6 +3,7 @@ from .views import view_prescriptions, request_prescription
 from . import views
 
 urlpatterns = [
+    path('debug-fees/', views.debug_fees, name='debug_fees'),
     path('delete-fee/<int:fee_id>/', views.delete_fee, name='delete_fee'),
     path('prescriptions/request/<int:prescription_id>/', request_prescription, name='request_prescription'),
     path('book/', views.book_appointment, name='book_appointment'),

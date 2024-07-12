@@ -107,9 +107,20 @@
     <p><strong>Private Payments:</strong> £{{ private_payments }}</p>
 
     <h3>Manage Fees</h3>
-    <form method="post" action="{% url 'admin_invoices' %}">
+    <form method="post">
         {% csrf_token %}
-        {{ fee_form.as_p }}
+        {{ fee_form.non_field_errors }}
+        {% for field in fee_form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="alert alert-danger">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
         <button type="submit" name="fee_form" class="btn btn-primary">Add Fee</button>
     </form>
 

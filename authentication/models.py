@@ -16,8 +16,8 @@ class User(AbstractUser):
         ('admin', 'Admin'),
     )
     PATIENT_TYPE_CHOICES = (
-        ('NHS', 'NHS'),
-        ('PRIVATE', 'Private'),
+        ('NHS', 'NHS Patient'),
+        ('PRIVATE', 'Private Patient'),
     )
     DOCTOR_SPECIALTIES = (
         ('EYE', 'Eye Specialist'),

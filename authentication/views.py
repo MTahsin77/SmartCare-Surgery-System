@@ -44,7 +44,11 @@ def register(request):
     else:
         form = UserRegistrationForm()
     
-    return render(request, 'authentication/register.html', {'form': form})
+    context = {
+        'form': form,
+        'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
+    }
+    return render(request, 'authentication/register.html', context)
 
 @login_required
 def profile(request):
