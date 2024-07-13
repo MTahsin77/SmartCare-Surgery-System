@@ -28,9 +28,11 @@ def patient_dashboard(request):
 def doctor_dashboard(request):
     appointments = Appointment.objects.filter(doctor=request.user)
     prescriptions = Prescription.objects.filter(doctor=request.user)
+    booking_status = Appointment.get_booking_status()
     context = {
         'appointments': appointments,
         'prescriptions': prescriptions,
+        'booking_status': booking_status,
     }
     return render(request, 'dashboards/doctor_dashboard.html', context)
 
@@ -38,8 +40,10 @@ def doctor_dashboard(request):
 @user_is_nurse
 def nurse_dashboard(request):
     appointments = Appointment.objects.filter(nurse=request.user)
+    booking_status = Appointment.get_booking_status()
     context = {
         'appointments': appointments,
+        'booking_status': booking_status,
     }
     return render(request, 'dashboards/nurse_dashboard.html', context)
 
@@ -48,19 +52,15 @@ def nurse_dashboard(request):
 def admin_dashboard(request):
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=30)
-
     if request.method == 'POST':
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
-
     invoices = Invoice.objects.filter(date_issued__range=[start_date, end_date])
-
     daily_turnover = invoices.values('date_issued__date').annotate(total=Sum('total_amount'))
     weekly_turnover = invoices.values('date_issued__week').annotate(total=Sum('total_amount'))
     monthly_turnover = invoices.values('date_issued__month').annotate(total=Sum('total_amount'))
-
     patient_stats = Appointment.objects.filter(date__range=[start_date, end_date]).values('patient__user_type').annotate(count=Count('id'))
-
+    booking_status = Appointment.get_booking_status()
     context = {
         'daily_turnover': daily_turnover,
         'weekly_turnover': weekly_turnover,
@@ -68,8 +68,8 @@ def admin_dashboard(request):
         'patient_stats': patient_stats,
         'start_date': start_date,
         'end_date': end_date,
+        'booking_status': booking_status,
     }
-
     return render(request, 'dashboards/admin_dashboard.html', context)
 
 @login_required

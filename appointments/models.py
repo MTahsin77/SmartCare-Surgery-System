@@ -51,6 +51,40 @@ class Appointment(models.Model):
     def __str__(self):
         return f"{self.get_appointment_type_display()} for {self.patient} on {self.date} at {self.time}"
 
+    @classmethod
+    def get_booking_status(cls):
+        today = timezone.now().date()
+        last_week_start = today - timedelta(days=today.weekday() + 7)
+        last_week_end = last_week_start + timedelta(days=6)
+        this_week_start = today - timedelta(days=today.weekday())
+        this_week_end = this_week_start + timedelta(days=6)
+        next_week_start = this_week_end + timedelta(days=1)
+        next_week_end = next_week_start + timedelta(days=6)
+
+        last_week_appointments = cls.objects.filter(date__range=[last_week_start, last_week_end]).count()
+        this_week_appointments = cls.objects.filter(date__range=[this_week_start, this_week_end]).count()
+        next_week_appointments = cls.objects.filter(date__range=[next_week_start, next_week_end]).count()
+
+        total_slots = 5 * 8 * 6  # 5 days, 8 hours per day, 6 slots per hour
+
+        last_week_percentage = min(last_week_appointments / total_slots * 100, 100)
+        this_week_percentage = min(this_week_appointments / total_slots * 100, 100)
+        next_week_percentage = min(next_week_appointments / total_slots * 100, 100)
+
+        return {
+            'last_week': last_week_percentage,
+            'this_week': this_week_percentage,
+            'next_week': next_week_percentage
+        }
+
+    @classmethod
+    def is_fully_booked(cls, date):
+        week_start = date - timedelta(days=date.weekday())
+        week_end = week_start + timedelta(days=6)
+        week_appointments = cls.objects.filter(date__range=[week_start, week_end]).count()
+        total_slots = 5 * 8 * 6  # 5 days, 8 hours per day, 6 slots per hour
+        return week_appointments >= total_slots
+        
 class Prescription(models.Model):
     patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     doctor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='prescriptions', on_delete=models.CASCADE)

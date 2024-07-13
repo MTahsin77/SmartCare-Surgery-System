@@ -29,6 +29,11 @@ def book_appointment(request):
     if request.method == 'POST':
         form = AppointmentForm(request.POST)
         if form.is_valid():
+            appointment_date = form.cleaned_data['date']
+            if Appointment.is_fully_booked(appointment_date):
+                messages.error(request, "We are fully booked for this week. Please choose a different week.")
+                return redirect('book_appointment')
+            
             appointment = form.save(commit=False)
             appointment.patient = request.user
             doctor_or_nurse = form.cleaned_data['doctor_or_nurse']
@@ -47,10 +52,13 @@ def book_appointment(request):
     else:
         form = AppointmentForm()
     
+    booking_status = Appointment.get_booking_status()
     context = {
         'form': form,
+        'booking_status': booking_status,
     }
     return render(request, 'appointments/book_appointment.html', context)
+
 
 @login_required
 def reschedule_appointment(request, appointment_id):

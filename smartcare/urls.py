@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('api/', include('smartcare_api.urls')),
     path('admin/', admin.site.urls),
     path('auth/', include('authentication.urls')),
     path('appointments/', include('appointments.urls')),
