@@ -105,7 +105,7 @@ LOGIN_REDIRECT_URL = '/dashboards/dashboard/'
 LOGIN_URL = '/auth/login/'
 AUTH_USER_MODEL = 'authentication.User'
 
-GOOGLE_OAUTH2_CLIENT_SECRETS_JSON = os.path.join(BASE_DIR, 'appointments', 'client_secret_***REMOVED***.json')
+GOOGLE_OAUTH2_CLIENT_SECRETS_JSON = os.path.join(BASE_DIR, 'appointments', 'client_secret_838839251496-p0j4ck0e5v654to1nfaf0b283kvjhoap.apps.googleusercontent.com.json')
 GOOGLE_OAUTH2_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 GOOGLE_MAPS_API_KEY = 'AIzaSyC_1ijDkFAqIKJ0jeQF6SI9VDUQO5pGUvk'
