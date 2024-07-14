@@ -3,12 +3,39 @@
 {% block content %}
 <h1 style="text-align: center; margin-top: 20px;">Admin Dashboard</h1>
 
-<h2>Booking Status</h2>
-    <ul>
-        <li>Last week: {% if booking_status.last_week == 100 %}Fully booked{% else %}{{ booking_status.last_week|floatformat:0 }}% booked{% endif %}</li>
-        <li>This week: {% if booking_status.this_week == 100 %}Fully booked{% else %}{{ booking_status.this_week|floatformat:0 }}% booked{% endif %}</li>
-        <li>Next week: {% if booking_status.next_week == 100 %}Fully booked{% else %}{{ booking_status.next_week|floatformat:0 }}% booked{% endif %}</li>
-    </ul>
+<h2 style="text-align: center;">Booking Status</h2>
+<div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="width: 80px;">Last week:</span>
+            <div style="background-color: #e0e0e0; width: 280px; height: 20px; border-radius: 10px; overflow: hidden;">
+                <div style="background-color: #4CAF50; width: {{ booking_status.last_week }}%; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; box-sizing: border-box;">
+                    <span style="color: white; font-size: 12px;">{{ booking_status.last_week|floatformat:0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="width: 80px;">This week:</span>
+            <div style="background-color: #e0e0e0; width: 280px; height: 20px; border-radius: 10px; overflow: hidden;">
+                <div style="background-color: #2196F3; width: {{ booking_status.this_week }}%; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; box-sizing: border-box;">
+                    <span style="color: white; font-size: 12px;">{{ booking_status.this_week|floatformat:0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="width: 80px;">Next week:</span>
+            <div style="background-color: #e0e0e0; width: 280px; height: 20px; border-radius: 10px; overflow: hidden;">
+                <div style="background-color: #FFC107; width: {{ booking_status.next_week }}%; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; box-sizing: border-box;">
+                    <span style="color: white; font-size: 12px;">{{ booking_status.next_week|floatformat:0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <section style="max-width: 800px; margin: 0 auto; padding: 20px;">
     <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">

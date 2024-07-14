@@ -6840,11 +6840,9 @@
                 "PLACEMENT_TAG_JAVASCRIPT_LEGACY",
                 "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT_LEGACY",
                 "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT_LEGACY",
-                "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4",
-                "PLACEMENT_TAG_TRACKING_THIRD_PARTY_MEASUREMENT"
+                "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4"
               ],
               "enumDescriptions": [
-                "",
                 "",
                 "",
                 "",
@@ -9673,7 +9671,7 @@
       }
     }
   },
-  "revision": "20220314",
+  "revision": "20210524",
   "rootUrl": "https://dfareporting.googleapis.com/",
   "schemas": {
     "Account": {
@@ -11388,7 +11386,7 @@
           "type": "boolean"
         },
         "customVariables": {
-          "description": "Custom floodlight variables. This field may only be used when calling batchinsert; it is not supported by batchupdate.",
+          "description": "Custom floodlight variables.",
           "items": {
             "$ref": "CustomFloodlightVariable"
           },
@@ -13791,7 +13789,7 @@
       "type": "object"
     },
     "CustomFloodlightVariable": {
-      "description": "A custom floodlight variable. This field may only be used when calling batchinsert; it is not supported by batchupdate.",
+      "description": "A custom floodlight variable.",
       "id": "CustomFloodlightVariable",
       "properties": {
         "kind": {
@@ -17342,11 +17340,9 @@
               "PLACEMENT_TAG_JAVASCRIPT_LEGACY",
               "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT_LEGACY",
               "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT_LEGACY",
-              "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4",
-              "PLACEMENT_TAG_TRACKING_THIRD_PARTY_MEASUREMENT"
+              "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4"
             ],
             "enumDescriptions": [
-              "",
               "",
               "",
               "",
@@ -19663,11 +19659,9 @@
             "PLACEMENT_TAG_JAVASCRIPT_LEGACY",
             "PLACEMENT_TAG_INTERSTITIAL_IFRAME_JAVASCRIPT_LEGACY",
             "PLACEMENT_TAG_INTERSTITIAL_JAVASCRIPT_LEGACY",
-            "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4",
-            "PLACEMENT_TAG_TRACKING_THIRD_PARTY_MEASUREMENT"
+            "PLACEMENT_TAG_INSTREAM_VIDEO_PREFETCH_VAST_4"
           ],
           "enumDescriptions": [
-            "",
             "",
             "",
             "",

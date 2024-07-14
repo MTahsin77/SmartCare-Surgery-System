@@ -13,8 +13,8 @@
         <form method="get" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
             <select name="user_type" style="padding: 5px; border-radius: 4px;">
                 <option value="">All Patient Types</option>
-                <option value="nhs" {% if user_type_filter == 'nhs' %}selected{% endif %}>NHS</option>
-                <option value="private" {% if user_type_filter == 'private' %}selected{% endif %}>Private</option>
+                <option value="NHS" {% if user_type_filter == 'NHS' %}selected{% endif %}>NHS</option>
+                <option value="PRIVATE" {% if user_type_filter == 'PRIVATE' %}selected{% endif %}>Private</option>
             </select>
             <select name="user_role" style="padding: 5px; border-radius: 4px;">
                 <option value="">All Roles</option>

@@ -22,7 +22,9 @@ INSTALLED_APPS = [
     'appointments',
     'dashboards',
     'home',
+    'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
     'smartcare_api',
 ]
 
@@ -34,9 +36,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 ROOT_URLCONF = 'smartcare.urls'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 TEMPLATES = [
     {
@@ -56,19 +68,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'smartcare.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'smartcare_db'),
-        'USER': os.environ.get('DB_USER', 'smartcare_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', '030700'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-db_from_env = dj_database_url.config(conn_max_age=600)
-DATABASES['default'].update(db_from_env)
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=False  
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'smartcare_db'),
+            'USER': os.environ.get('DB_USER', 'smartcare_user'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', '030700'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -113,3 +133,6 @@ GOOGLE_MAPS_JAVASCRIPT_API = f'https://maps.googleapis.com/maps/api/js?key={GOOG
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@smartcaresurgery.com'
+
+SESSION_COOKIE_AGE = 300
+SESSION_SAVE_EVERY_REQUEST = True

@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -83,8 +84,15 @@ def user_login(request):
 @login_required
 def user_logout(request):
     logout(request)
-    messages.success(request, 'You have been logged out.')
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'success', 'message': 'Logged out successfully'})
     return redirect('login')
+
+def check_auth_status(request):
+    if request.user.is_authenticated:
+        return JsonResponse({'authenticated': True})
+    else:
+        return JsonResponse({'authenticated': False})
 
 
 def redirect_to_dashboard(user):

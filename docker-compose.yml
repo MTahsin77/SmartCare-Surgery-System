@@ -4,9 +4,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=smartcare_db
-      - POSTGRES_USER=smartcare_user
-      - POSTGRES_PASSWORD=030700
+      - POSTGRES_DB=${DB_NAME:-smartcare_db}
+      - POSTGRES_USER=${DB_USER:-smartcare_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-030700}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - backend
 
   web:
     build: .
@@ -18,7 +22,14 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://smartcare_user:030700@db:5432/smartcare_db
+      - DATABASE_URL=postgres://${DB_USER:-smartcare_user}:${DB_PASSWORD:-030700}@db:5432/${DB_NAME:-smartcare_db}
+      - DB_NAME=${DB_NAME:-smartcare_db}
+      - DB_USER=${DB_USER:-smartcare_user}
+      - DB_PASSWORD=${DB_PASSWORD:-030700}
+      - DB_HOST=db
+      - DB_PORT=5432
+    networks:
+      - backend
 
   drf_services:
     build: .
@@ -30,7 +41,17 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://smartcare_user:030700@db:5432/smartcare_db
+      - DATABASE_URL=postgres://${DB_USER:-smartcare_user}:${DB_PASSWORD:-030700}@db:5432/${DB_NAME:-smartcare_db}
+      - DB_NAME=${DB_NAME:-smartcare_db}
+      - DB_USER=${DB_USER:-smartcare_user}
+      - DB_PASSWORD=${DB_PASSWORD:-030700}
+      - DB_HOST=db
+      - DB_PORT=5432
+    networks:
+      - backend
+
+networks:
+  backend:
 
 volumes:
   postgres_data:
